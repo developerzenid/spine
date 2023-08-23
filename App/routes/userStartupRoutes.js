@@ -126,7 +126,7 @@ module.exports = (app) => {
   );
   router.get("/filterStartupData", userControllers.filterStartupData);
   // router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchInvestorupUser); //todo
-  // router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchAllInvesterUser);
+  router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchAllInvesterUser);
 
   router.post(
     "/sentNotification",
