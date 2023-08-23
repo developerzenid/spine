@@ -1,0 +1,43 @@
+{
+  "name": "hop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "aws-sdk": "^2.1414.0",
+    "axios": "^1.1.3",
+    "bcrypt": "^5.1.0",
+    "binance": "^2.2.3",
+    "binance-api-node": "^0.12.1",
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "fcm-node": "^1.6.1",
+    "fs": "0.0.1-security",
+    "init": "^0.1.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^5.7.0",
+    "mongoose": "^6.6.5",
+    "multer": "^1.4.5-lts.1",
+    "multer-s3": "^2.10.0",
+    "node-cron": "^3.0.2",
+    "node-fetch": "^3.3.0",
+    "nodemailer": "^6.9.1",
+    "nodemon": "^2.0.20",
+    "path": "^0.12.7",
+    "request": "^2.88.2",
+    "Router": "^2.1.0",
+    "socket.io": "^4.7.0",
+    "thumbsupply": "^0.4.0",
+    "twilio": "^4.11.0",
+    "unirest": "^0.6.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
