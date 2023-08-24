@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const twilio = require("twilio");
 // const ejs = require("ejs");
 const SendOtp = async (email, otp, name) => {
-
+console.log(email,otp,name)
   //   console.log("email", email);
 
   // Sending Otp to phone number
