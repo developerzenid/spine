@@ -68,6 +68,31 @@ exports.adminSignUp = async (req, res, next) => {
   }
 };
 
+exports.getAdmin = async (req, res) => {
+  try {
+    console.log(`>>>>>>>>>>> Get Admin ${req.body} >>>>>>>>>`);
+    const data = await adminModel.find(req.user._id);
+    if (data) {
+      res.status(200).send({
+        success: true,
+        status: "200",
+        message: "Get Profile Succesfully",
+        data,
+      });
+    } else {
+      res
+        .status(401)
+        .send({ status: "failed", message: "Something Went Wrong" });
+    }
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
 exports.adminLogin = async (req, res, next) => {
   try {
     let data = req.body;
@@ -247,48 +272,38 @@ exports.setPassword = async (req, res) => {
           { $set: { otp_verified: false } }
         );
         if (saved_user) {
-          res
-            .status(200)
-            .send({
-              success: true,
-              status: "200",
-              message: "Set Password succesfully",
-            });
+          res.status(200).send({
+            success: true,
+            status: "200",
+            message: "Set Password succesfully",
+          });
         } else {
-          res
-            .status(401)
-            .send({
-              success: false,
-              status: "401",
-              message: "Something Went Wrongs",
-            });
-        }
-      } else {
-        res
-          .status(401)
-          .send({
+          res.status(401).send({
             success: false,
             status: "401",
-            message: "Password And password_confirmation don't Match ",
+            message: "Something Went Wrongs",
           });
-      }
-    } else {
-      res
-        .status(401)
-        .send({
+        }
+      } else {
+        res.status(401).send({
           success: false,
           status: "401",
-          message: "Please resend otp again",
+          message: "Password And password_confirmation don't Match ",
         });
-    }
-  } catch (error) {
-    res
-      .status(401)
-      .send({
+      }
+    } else {
+      res.status(401).send({
         success: false,
         status: "401",
-        message: "Something Went Wrongs",
+        message: "Please resend otp again",
       });
+    }
+  } catch (error) {
+    res.status(401).send({
+      success: false,
+      status: "401",
+      message: "Something Went Wrongs",
+    });
     console.log("error", error);
   }
 };
