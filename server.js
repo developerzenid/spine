@@ -9,6 +9,9 @@ const socket = require("socket.io");
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors());
+
+
 // JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -28,7 +31,6 @@ app.use(investorProfile);
 app.use(startupProfile);
 app.use(admin);
 // CORS Policy
-app.use(cors());
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(

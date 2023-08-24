@@ -1302,3 +1302,23 @@ module.exports.filterIntrestedInByMyId = (myId, data) => {
     data.intrestedIn = data.intrestedIn.filter((id) => !id.equals(myId));
   }
 };
+
+module.exports.getCardData = async (req, res) => {
+  try {
+    console.log(`>>>>>>>>> ${req.params._id}  >>>>>>>`);
+    const findUser =
+      (await investorModel.findById(req.params._id)) ||
+      (await UserModel.findById(req.params._id));
+    res.status(201).json({
+      status: true,
+      message: `Card user fetch successfully`,
+      data: findUser,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};

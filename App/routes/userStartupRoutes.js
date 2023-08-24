@@ -95,6 +95,7 @@ module.exports = (app) => {
   );
   router.get("/getProfile", checkUserAuth, userControllers.GetProfile);
 
+  router.get("/fetchMyProfile", checkUserAuth, userControllers.fetchMyProfile);
   // router.post("/startupMyProfile", checkUserAuth,upload.single("file"), userControllers.startupMyProfile);
 
   router.post(
@@ -117,7 +118,6 @@ module.exports = (app) => {
     checkUserAuth,
     userControllers.changeStartupPassword
   );
-  router.get("/fetchMyProfile", checkUserAuth, userControllers.fetchMyProfile);
   //done
   router.get(
     "/fetchInvestorUser",
@@ -126,7 +126,11 @@ module.exports = (app) => {
   );
   router.get("/filterStartupData", userControllers.filterStartupData);
   // router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchInvestorupUser); //todo
-  router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchAllInvesterUser);
+  router.get(
+    "/fetchAllInvester",
+    checkUserAuth,
+    userControllers.fetchAllInvesterUser
+  );
 
   router.post(
     "/sentNotification",
@@ -151,6 +155,10 @@ module.exports = (app) => {
     checkUserAuth,
     userControllers.rejectedRequest
   );
+
+  //get single user info by params
+
+  router.get("/getCardUser/:_id", userControllers.getCardData);
 
   app.use("/", router);
 };
