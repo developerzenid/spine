@@ -1322,3 +1322,29 @@ module.exports.getCardData = async (req, res) => {
     });
   }
 };
+
+module.exports.acceptUser = async (req, res) => {
+  try {
+    console.log(req.user._id);
+    const id = req.user._id;
+    const users =
+      (await investorNotificationModel.find({
+        user_id: id,
+        status: "accept",
+      })) || (await NotificationModel.findById({ user_id: id, status: "accept" }));
+
+    console.log(users);
+    res.status(201).json({
+      status: true,
+      message: `Accepted users`,
+      data: users,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+    console.log(err);
+  }
+};

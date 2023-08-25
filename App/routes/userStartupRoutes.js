@@ -160,5 +160,7 @@ module.exports = (app) => {
 
   router.get("/getCardUser/:_id", userControllers.getCardData);
 
+  router.get("/listAcceptUser",checkUserAuth, userControllers.acceptUser)
+
   app.use("/", router);
 };

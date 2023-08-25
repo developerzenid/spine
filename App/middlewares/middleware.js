@@ -1,5 +1,6 @@
 let modelUser = require("../models/userStartupModel.js");
-const adminModel = require("../models/adminModel.js")
+const adminModel = require("../models/adminModel.js");
+const Investor = require("../models/userInvestorModel.js");
 let jwt = require("jsonwebtoken");
 
 module.exports.checkUserAuth = async (req, res, next) => {
@@ -14,7 +15,10 @@ module.exports.checkUserAuth = async (req, res, next) => {
       const { userID } = jwt.verify(token, process.env.JWT_SECRET_KEY);
       console.log("userId", userID);
       // Get User from Token
-      req.user = await modelUser.findById(userID).select("-password") || await adminModel.findById(userID).select("-password")
+      req.user =
+        (await modelUser.findById(userID).select("-password")) ||
+        (await adminModel.findById(userID).select("-password")) ||
+        (await Investor.findById(userID).select("-password"));
       console.log("middleware", req.user._id);
       if (req.user == null) {
         return res
