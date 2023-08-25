@@ -659,7 +659,7 @@ module.exports.updateProfile = async (req, res) => {
               : req?.files?.pitchDeck[0]?.location,
           pitchDeckLink: pitchDeckLink,
           ticketSize: ticketSize,
-          roundSize:roundSize
+          roundSize: roundSize,
         },
       },
       { new: true }
@@ -1308,11 +1308,10 @@ module.exports.filterIntrestedInByMyId = (myId, data) => {
 
 module.exports.getCardData = async (req, res) => {
   try {
-    const _id = req.query.id
+    const _id = req.query.id;
     console.log(`>>>>>>>>> ${_id}  >>>>>>>`);
     const findUser =
-      (await investorModel.findById(_id)) ||
-      (await UserModel.findById(_id));
+      (await investorModel.findById(_id)) || (await UserModel.findById(_id));
     res.status(201).json({
       status: true,
       message: `Card user fetch successfully`,
@@ -1331,17 +1330,23 @@ module.exports.acceptUser = async (req, res) => {
   try {
     console.log(req.user._id);
     const id = req.user._id;
-    const users =
-      (await investorNotificationModel.find({
-        user_id: id,
-        status: "accept",
-      })) || (await NotificationModel.findById({ user_id: id, status: "accept" }));
+    const users = await NotificationModel.find({
+      user_id: id,
+      status: "accept",
+    });
 
-    console.log(users);
+    const notify = await investorNotificationModel.find({
+      user_id: id,
+      status: "accept",
+    });
+
+    const finalResult = [...notify, ...users];
+
+    console.log(">>>>>>>>", users);
     res.status(201).json({
       status: true,
       message: `Accepted users`,
-      data: users,
+      data: finalResult,
     });
   } catch (err) {
     return res.status(401).json({
