@@ -11,7 +11,6 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 
-
 // JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -23,7 +22,7 @@ require("./App/routes/roleRouter.js")(app);
 require("./App/routes/investorRouter.js")(app);
 require("./App/routes/startUpMessages.js")(app);
 require("./App/routes/investerMessageRouter.js")(app);
-const admin = require("./App/routes/adminRouter.js")
+const admin = require("./App/routes/adminRouter.js");
 const investorProfile = require("./App/routes/investorprofileRouter.js");
 const startupProfile = require("./App/routes/startupprofileRouter.js");
 

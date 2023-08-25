@@ -632,6 +632,7 @@ module.exports.updateProfile = async (req, res) => {
       BusinessModel,
       fundRaise,
       pitchDeck,
+      roundSize,
       ticketSize,
     } = req.body;
     const data = await UserModel.findOneAndUpdate(
@@ -658,6 +659,7 @@ module.exports.updateProfile = async (req, res) => {
               : req?.files?.pitchDeck[0]?.location,
           pitchDeckLink: pitchDeckLink,
           ticketSize: ticketSize,
+          roundSize:roundSize
         },
       },
       { new: true }
@@ -771,6 +773,7 @@ module.exports.setfundingTeam = async (req, res) => {
     console.log("err.............=>", err);
   }
 };
+
 //fundRaising..........................................................................................
 module.exports.setfundRaising = async (req, res) => {
   try {
