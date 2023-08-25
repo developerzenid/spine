@@ -68,7 +68,15 @@ exports.editstartupProfile=async(req,res)=>{
          }else{
             let criteria={_id:data._id}
            let options={new:true}
-           let editprofile=await StartupProModel.findOneAndUpdate(criteria,data,options)
+           let updatedFields = {
+            industry: data.industry,
+            investor_stage: data.investor_stage,
+            round_size: data.round_size,
+            ticket_size: data.ticket_size,
+            founding_tom_size: data.founding_tom_size,
+            business_model:data.business_model
+        };
+           let editprofile=await StartupProModel.findOneAndUpdate(criteria,{$set:updatedFields},options)
            console.log("my updates==========",editprofile)
            if(!editprofile){
               return res.status(401).json(

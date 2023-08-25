@@ -69,7 +69,14 @@ exports.editInvestorProfile=async(req,res)=>{
          }else{
             let criteria={_id:data._id}
            let options={new:true}
-           let editprofile=await InvestorProModel.findOneAndUpdate(criteria,data,options)
+           let updatedFields = {
+            industry: data.industry,
+            investor_stage: data.investor_stage,
+            round_size: data.round_size,
+            ticket_size: data.ticket_size,
+            type_of_investor: data.type_of_investor,
+        };
+           let editprofile=await InvestorProModel.findOneAndUpdate(criteria,{ $set: updatedFields },options)
            if(!editprofile){
               return res.status(401).json(
                 {
