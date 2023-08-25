@@ -1305,10 +1305,11 @@ module.exports.filterIntrestedInByMyId = (myId, data) => {
 
 module.exports.getCardData = async (req, res) => {
   try {
-    console.log(`>>>>>>>>> ${req.params._id}  >>>>>>>`);
+    const _id = req.query.id
+    console.log(`>>>>>>>>> ${_id}  >>>>>>>`);
     const findUser =
-      (await investorModel.findById(req.params._id)) ||
-      (await UserModel.findById(req.params._id));
+      (await investorModel.findById(_id)) ||
+      (await UserModel.findById(_id));
     res.status(201).json({
       status: true,
       message: `Card user fetch successfully`,

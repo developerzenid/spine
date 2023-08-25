@@ -158,9 +158,9 @@ module.exports = (app) => {
 
   //get single user info by params
 
-  router.get("/getCardUser/:_id", userControllers.getCardData);
+  router.get("/getCardUser", userControllers.getCardData);
 
-  router.get("/listAcceptUser",checkUserAuth, userControllers.acceptUser)
+  router.get("/listAcceptUser", checkUserAuth, userControllers.acceptUser);
 
   app.use("/", router);
 };
