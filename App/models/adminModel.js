@@ -7,7 +7,7 @@ const AdminSchema = new mongoose.Schema(
     password: { type: String },
     token: { type: String },
     otp: { type: String },
-    otp_verified: { default: false },
+    otp_verified: { type: Boolean, default: false },
     // role: {defult: 'user'}
   },
   {

@@ -259,7 +259,9 @@ exports.setPassword = async (req, res) => {
   console.log(req.body);
   try {
     const checkotpVerify = await adminModel.findOne({ email: email });
-    if (checkotpVerify.otp_verified === true) {
+    console.log(checkotpVerify?.otp_verified == true);
+    if (checkotpVerify?.otp_verified) {
+      console.log(">>>>>> true >>>>>>>>>");
       const salt = await bcrypt.genSalt(10);
       const newHashPassword = await bcrypt.hash(password, salt);
       if (password === password_confirmation) {
