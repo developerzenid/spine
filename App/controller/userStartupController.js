@@ -904,34 +904,26 @@ module.exports.fetchMyProfile = async (req, res, next) => {
 module.exports.fetchInvestorupUser = async (req, res, next) => {
   try {
     const user_id = req.user._id;
-    console.log("user", user_id);
 
-    // Find notifications sent by user_id
-    // const sentNotifications = await notification.find({ user_id: user_id });
     const sentNotifications = await investorNotificationModel.find({
       user_id: user_id,
     });
-    console.log("sent", sentNotifications);
 
+    console.log(">>>>>>>>>>>>>>>>> send notification >>>>>>>>>>>>>>",sentNotifications)
     // Extract the recipient user IDs from sentNotifications
     const recipientIds = sentNotifications.map(
       (notification) => notification.to_send
     );
-    console.log("rec", recipientIds);
+    console.log("receipt ids that contain user id >>>>>> ", recipientIds);
 
-    // Find users whose IDs are not present in the recipientIds array
+    
+
     const usersNotInNotification = await investorModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
-      // { $match: { otp_verified: true } },
+      { $match: { otp_verified: true } },
       { $sample: { size: 100000000 } },
     ]);
-    console.log("Users that doesn't exist in list", usersNotInNotification);
-
-    // let newUsersNotInNotification = this.filterDataByMyId(
-    //   user_id,
-    //   usersNotInNotification
-    // );
-    // console.log("newUserNoti", newUsersNotInNotification);
+    console.log("user not notification", usersNotInNotification);
 
     if (usersNotInNotification.length > 0) {
       return res.status(200).json({
@@ -1334,7 +1326,6 @@ module.exports.acceptUser = async (req, res) => {
       user_id: id,
       status: "accept",
     });
-
     const notify = await investorNotificationModel.find({
       user_id: id,
       status: "accept",

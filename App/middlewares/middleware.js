@@ -15,10 +15,20 @@ module.exports.checkUserAuth = async (req, res, next) => {
       const { userID } = jwt.verify(token, process.env.JWT_SECRET_KEY);
       console.log("userId", userID);
       // Get User from Token
-      req.user =
-        (await modelUser.findById(userID).select("-password")) ||
-        (await adminModel.findById(userID).select("-password")) ||
-        (await Investor.findById(userID).select("-password"));
+      data1 = await modelUser.findById(userID).select("-password");
+      data2 = await adminModel.findById(userID).select("-password");
+      data3 = await Investor.findById(userID).select("-password");
+
+      if (data1 != null){
+        req.user = data1
+      }
+      if (data2 != null){
+        req.user = data2
+      }
+      if (data3 != null){
+        req.user = data3
+      }
+      
       console.log("middleware", req.user._id);
       if (req.user == null) {
         return res
