@@ -819,10 +819,7 @@ module.exports.fetchInvesterUser = async (req, res, next) => {
 module.exports.fetchStartupUser = async (req, res, next) => {
   try {
     const user_id = req.user._id;
-    // const user_id = "64b64a1b69f50d0bd4f8b36e";
-    console.log("userId", user_id);
-    // Find notifications sent by user_id
-    // const sentNotifications = await NotificationModel.find({ user_id: user_id });
+
     const sentNotifications = await NotificationModel.find({
       user_id: user_id,
     });
@@ -834,8 +831,7 @@ module.exports.fetchStartupUser = async (req, res, next) => {
     );
     console.log("receipt ids that contain user id >>>>>> ", recipientIds);
 
-    // Find users whose IDs are not present in the recipientIds array
-    // const usersNotInNotification = await UserModel.find({ _id: { $nin: recipientIds } });
+    
 
     const usersNotInNotification = await UserModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
@@ -843,12 +839,6 @@ module.exports.fetchStartupUser = async (req, res, next) => {
       { $sample: { size: 100000000 } },
     ]);
     console.log("user not notification", usersNotInNotification);
-
-    //     let newUsersNotInNotification = filterDataByMyId(
-    //       user_id,
-    //       usersNotInNotification
-    //     );
-    // console.log('new notification',newUsersNotInNotification);
 
     if (usersNotInNotification.length > 0) {
       return res.status(200).json({
