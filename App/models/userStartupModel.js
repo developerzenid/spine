@@ -38,8 +38,9 @@ const userSchema = new mongoose.Schema(
     },
     intrestedIn: {
       type: [mongoose.Schema.Types.ObjectId],
-      default: []
+      default: [],
     },
+    isActive: { type: Boolean, default: false },
   },
   {
     timestamps: true,

@@ -5,11 +5,17 @@ let cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 const socket = require("socket.io");
+const User = require("./App/models/userStartupModel");
+const Investor = require("./App/models/userInvestorModel");
+const Chat = require("./App/models/socketmessage");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
+app.get("/", (req, res) => {
+  res.send("Hey there");
+});
 
 // JSON
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -83,21 +89,44 @@ const io = socket(server, {
   },
 });
 
-global.onlineUsers = new Map();
+const onlineUsers = {};
+
 io.on("connection", (socket) => {
   console.log("Connect socket.io");
   console.log("Socket ID:", socket.id);
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
+
+  socket.on("add-user", async (userId) => {
+    console.log(`>>>>>>>>>>> ${userId} added >>>>>>>>>>`);
+
+    onlineUsers[userId] = socket.id;
+    await User.findByIdAndUpdate(
+      { _id: userId },
+      { $set: { is_online: true } }
+    );
+    await Investor.findByIdAndUpdate(
+      { _id: userId },
+      { $set: { is_online: true } }
+    );
+
+    socket.emit("onlineuser", { userid: userId });
   });
 
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      console.log("data", data);
-      console.log("data.message", data.message);
-      socket.to(sendUserSocket).emit("msg-recieve", data.message);
+  socket.on("send-msg", async function (data) {
+    console.log(data)
+
+    console.log(`>>>>>>>>>>>>1  ${data} >>>>>>>>>>> `);
+    if (onlineUsers[data.to]) {
+      const sendId = onlineUsers[data.to]
+      console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`)
+      console.log(`>>>>>>>>>>>>2 ${data} received >>>>>>>>>>>>`);
+      console.log(`>>>>>>>>>>>>3 ${data.message} >>>>>>>>>>>>`);
+      socket.to(sendId).emit("receivedMsg", data.message);
+      const check = await Chat.create({
+        user_id: data.from,
+        to_send: data.to,
+        message: data.message,
+      });
+      console.log(`>>>>>>>>>>4  ${check} >>>>>>>>>>>`);
     }
-  });
+  }); 
 });
