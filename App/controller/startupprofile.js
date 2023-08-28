@@ -35,12 +35,12 @@ exports.getStartupProfile=async(req,res)=>{
      if(!investorprofile){
          return res.status(401).json({
              status: false,
-             message: "unable to get investors profile"
+             message: "unable to get startup profile"
          })
      }else{
          return res.status(200).json({
              status: true,
-             message: "successfully accessed investors profile",
+             message: "successfully accessed startup profile",
              response:investorprofile
          })
      }

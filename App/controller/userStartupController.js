@@ -17,6 +17,7 @@ var fcm = new FCM(serverKey);
 const notification = require("../models/notificationModel.js");
 const { status } = require("init");
 const { ObjectId } = require("mongodb");
+const investorModels = require("../models/userInvestorModel.js");
 
 //chooseRole............................................................................................
 
@@ -909,14 +910,15 @@ module.exports.fetchInvestorupUser = async (req, res, next) => {
       user_id: user_id,
     });
 
-    console.log(">>>>>>>>>>>>>>>>> send notification >>>>>>>>>>>>>>",sentNotifications)
+    console.log(
+      ">>>>>>>>>>>>>>>>> send notification >>>>>>>>>>>>>>",
+      sentNotifications
+    );
     // Extract the recipient user IDs from sentNotifications
     const recipientIds = sentNotifications.map(
       (notification) => notification.to_send
     );
     console.log("receipt ids that contain user id >>>>>> ", recipientIds);
-
-    
 
     const usersNotInNotification = await investorModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
@@ -1322,18 +1324,46 @@ module.exports.acceptUser = async (req, res) => {
   try {
     console.log(req.user._id);
     const id = req.user._id;
-    const users = await NotificationModel.find({
-      user_id: id,
-      status: "accept",
-    });
-    const notify = await investorNotificationModel.find({
-      user_id: id,
-      status: "accept",
-    });
 
-    const finalResult = [...notify, ...users];
+    const user = await NotificationModel.aggregate([
+      {
+        $match: {
+          user_id: id,
+          status: "accept",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "to_send",
+          foreignField: "_id",
+          as: "about",
+        },
+      },
+    ]);
 
-    console.log(">>>>>>>>", users);
+    const data = await investorNotificationModel.aggregate([
+      {
+        $match: {
+          user_id: id,
+          status: "accept",
+        },
+      },
+      {
+        $lookup: {
+          from: "investors",
+          localField: "to_send",
+          foreignField: "_id",
+          as: "about",
+        },
+      },
+    ]);
+    console.log(">>>>>>>>>>>>>user", user);
+    console.log(">>>>>>>>>>>>>data", data);
+
+    const finalResult = [...user, ...data];
+
+
     res.status(201).json({
       status: true,
       message: `Accepted users`,
