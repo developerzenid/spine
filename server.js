@@ -127,16 +127,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  // socket.on("disconnect", async (userId) => {
-  //   console.log(`>>>>>>>>>>> ${userId} Disconnected >>>>>>>>>>>>`);
-  //   await User.findByIdAndUpdate(
-  //     { _id: userId },
-  //     { $set: { isActive: false } }
-  //   );
-  //   await Investor.findByIdAndUpdate(
-  //     { _id: userId },
-  //     { $set: { isActive: false } }
-  //   );
-  //   socket.emit("Offlineuser", { userid: userId });
-  // });
+  socket.on("disconnect", async (userId) => {
+    console.log(`>>>>>>>>>>> ${userId} Disconnected >>>>>>>>>>>>`);
+    await User.findByIdAndUpdate(
+      { _id: userId },
+      { $set: { isActive: false } }
+    );
+    await Investor.findByIdAndUpdate(
+      { _id: userId },
+      { $set: { isActive: false } }
+    );
+    socket.emit("Offlineuser", { userid: userId });
+  });
 });
