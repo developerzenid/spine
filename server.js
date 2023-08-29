@@ -99,25 +99,22 @@ io.on("connection", (socket) => {
     console.log(`>>>>>>>>>>> ${userId} added >>>>>>>>>>`);
 
     onlineUsers[userId] = socket.id;
-    await User.findByIdAndUpdate(
-      { _id: userId },
-      { $set: { is_online: true } }
-    );
+    await User.findByIdAndUpdate({ _id: userId }, { $set: { isActive: true } });
     await Investor.findByIdAndUpdate(
       { _id: userId },
-      { $set: { is_online: true } }
+      { $set: { isActive: true } }
     );
 
     socket.emit("onlineuser", { userid: userId });
   });
 
   socket.on("send-msg", async function (data) {
-    console.log(data)
+    console.log(data);
 
     console.log(`>>>>>>>>>>>>1  ${data} >>>>>>>>>>> `);
     if (onlineUsers[data.to]) {
-      const sendId = onlineUsers[data.to]
-      console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`)
+      const sendId = onlineUsers[data.to];
+      console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`);
       console.log(`>>>>>>>>>>>>2 ${data} received >>>>>>>>>>>>`);
       console.log(`>>>>>>>>>>>>3 ${data.message} >>>>>>>>>>>>`);
       socket.to(sendId).emit("receivedMsg", data.message);
@@ -128,5 +125,18 @@ io.on("connection", (socket) => {
       });
       console.log(`>>>>>>>>>>4  ${check} >>>>>>>>>>>`);
     }
-  }); 
+  });
+
+  // socket.on("disconnect", async (userId) => {
+  //   console.log(`>>>>>>>>>>> ${userId} Disconnected >>>>>>>>>>>>`);
+  //   await User.findByIdAndUpdate(
+  //     { _id: userId },
+  //     { $set: { isActive: false } }
+  //   );
+  //   await Investor.findByIdAndUpdate(
+  //     { _id: userId },
+  //     { $set: { isActive: false } }
+  //   );
+  //   socket.emit("Offlineuser", { userid: userId });
+  // });
 });
