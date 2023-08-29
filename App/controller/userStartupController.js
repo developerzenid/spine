@@ -1112,7 +1112,7 @@ module.exports.sentNotification = async (req, res, next) => {
     const Notificationcreate = await investorNotificationModel.create({
       user_id: req.user._id,
       to_send: user_id,
-      title: `${loginUser.startupName} is intersted in connecting with you`,
+      title: `is intersted in connecting with you`,
     });
 
     if (!loginUser?.intrestedIn) loginUser.intrestedIn = [];
@@ -1169,7 +1169,8 @@ module.exports.fetchNotification = async (req, res, next) => {
     const user_id = req.user._id;
     const fetchNotification = await notification
       .find({ to_send: user_id })
-      .populate("user_id");
+      .populate("user_id").sort({createdAt:-1});
+      
     if (fetchNotification && fetchNotification.length > 0) {
       return res.status(200).json({
         status: true,
@@ -1203,19 +1204,33 @@ module.exports.acceptRequest = async (req, res, next) => {
     console.log("User", User);
     console.log("User toklen", User.mobile_token);
     const loginUser = await UserModel.findOne({ _id: req.user._id });
-    const Notificationcreate = await investorNotificationModel.create({
-      user_id: req.user._id,
-      title: `${loginUser.startupName} started following you`,
-      status: "accept",
-    });
-    // const startUpRequestAccept=await statUpAcceptModel.create({
-    //   from:req.user._id ,
-    //   to:user_id
-    // })
+    const Notificationcreate =
+      await investorNotificationModel.findByIdAndUpdate({
+        user_id: req.user._id,
+        title: `${loginUser.startupName} started following you`,
+        status: "accept",
+      });
+
     const startUpRequestAccept = await notification.findByIdAndUpdate(
       { _id: _id },
       { $set: { status: "accept", title: "Started following you" } }
     );
+
+    // //used to insert user in user model interseted
+    // loginUser.intrestedIn.includes(Notificationcreate.to_send)
+    //   ? console.log(``)
+    //   :  await UserModel.findByIdAndUpdate(
+    //       { _id: req.user._id },
+    //       { $push: { intrestedIn: startUpRequestAccept.to_send } }
+    //     );
+
+    // //we also need to insert that particular user in invested also-->
+    // User.intrestedIn.includes(startUpRequestAccept.to_send)
+    //   ? console.log(``)
+    //   : await investorModel.findByIdAndUpdate({
+    //       _id: Notificationcreate.to_send,
+    //     },{$push:{intrestedIn:req.user._id}});
+
     var message = {
       to: User.mobile_token,
       notification: {
@@ -1363,7 +1378,6 @@ module.exports.acceptUser = async (req, res) => {
 
     const finalResult = [...user, ...data];
 
-
     res.status(201).json({
       status: true,
       message: `Accepted users`,
@@ -1375,6 +1389,5 @@ module.exports.acceptUser = async (req, res) => {
       message: err.message,
       stack: err.stack,
     });
-    console.log(err);
   }
 };
