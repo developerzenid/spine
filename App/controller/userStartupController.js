@@ -1407,19 +1407,30 @@ module.exports.acceptUser = async (req, res) => {
 exports.fetchChat = async (req, res) => {
   try {
     console.log(
-      `>>>>>>>>> Fetch chat Login chat${req.user._id}  receiver  ${req.query.to_send} >>>>>>>>>>`
+      `>>>>>>>>> Fetch chat Login chat  ${req.user._id}  receiver  ${req.query.to_send} >>>>>>>>>>`
     );
     if (!req.query.to_send) {
       return res.status(500).json({ error: "Did not get receiver Id" });
     }
-    const Messages = await Chat.find({
+    const send = await Chat.find({
       user_id: req.user._id,
       to_send: req.query.to_send,
+    }).sort({ createdAt: -1 });
+
+    const recieve = await Chat.find({
+      user_id: req.query.to_send,
+      to_send: req.user._id,
+    }).sort({ createdAt: -1 });
+
+    console.log(`>>>>>>>>>>>  Response Message send ${send}  
+    >>>>>>>>>>>   Recieve ${recieve}`);
+    const result = { Send: send, Receive: recieve };
+
+    res.status(201).json({
+      status: true,
+      message: `Chat messages`,
+      data: result,
     });
-    console.log(`>>>>>>>>>>>  Response        ${Messages}        >>>>>>>>>`);
-    res
-      .status(201)
-      .json({ status: true, message: `Chat messages`, data: Messages });
   } catch (err) {
     return res.status(401).json({
       status: false,
