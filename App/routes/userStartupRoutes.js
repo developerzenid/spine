@@ -162,5 +162,9 @@ module.exports = (app) => {
 
   router.get("/listAcceptUser", checkUserAuth, userControllers.acceptUser);
 
+  //get chat for a particular user
+
+  router.get('/getChat', checkUserAuth, userControllers.fetchChat)
+
   app.use("/", router);
 };

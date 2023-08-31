@@ -3,6 +3,7 @@ let investorModel = require("../models/userInvestorModel.js");
 let NotificationModel = require("../models/notificationModel.js");
 let statUpAcceptModel = require("../models/startUpRequestAcceptModel.js");
 let investorNotificationModel = require("../models/investorNotificationModel.js");
+const Chat = require("../models/socketmessage.js");
 let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
 const SendOtp = require("../middlewares/sendOtp.js");
@@ -1358,9 +1359,9 @@ module.exports.acceptUser = async (req, res) => {
       },
       {
         $match: {
-          about: { $not: { $size: 0 } } 
-        }
-      }
+          about: { $not: { $size: 0 } },
+        },
+      },
     ]);
 
     const data = await investorNotificationModel.aggregate([
@@ -1380,9 +1381,9 @@ module.exports.acceptUser = async (req, res) => {
       },
       {
         $match: {
-          about: { $not: { $size: 0 } }
-        }
-      }
+          about: { $not: { $size: 0 } },
+        },
+      },
     ]);
     console.log(">>>>>>>>>>>>>user", user);
     console.log(">>>>>>>>>>>>>data", data);
@@ -1394,6 +1395,31 @@ module.exports.acceptUser = async (req, res) => {
       message: `Accepted users`,
       data: finalResult,
     });
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.fetchChat = async (req, res) => {
+  try {
+    console.log(
+      `>>>>>>>>> Fetch chat Login chat${req.user._id}  receiver  ${req.query.to_send} >>>>>>>>>>`
+    );
+    if (!req.query.to_send) {
+      return res.status(500).json({ error: "Did not get receiver Id" });
+    }
+    const Messages = await Chat.find({
+      user_id: req.user._id,
+      to_send: req.query.to_send,
+    });
+    console.log(`>>>>>>>>>>>  Response        ${Messages}        >>>>>>>>>`);
+    res
+      .status(201)
+      .json({ status: true, message: `Chat messages`, data: Messages });
   } catch (err) {
     return res.status(401).json({
       status: false,

@@ -1016,7 +1016,7 @@ module.exports.fetchNotification = async (req, res, next) => {
     const user_id = req.user._id;
     const fetchNotification = await investorNotification
       .find({ to_send: user_id })
-      .populate("user_id");
+      .populate("user_id").sort({ createdAt: -1 });
     // const fetchNotification = await investorNotification.find()
     console.log("fetchNotification", fetchNotification);
     if (fetchNotification && fetchNotification.length > 0) {
