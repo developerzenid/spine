@@ -1169,8 +1169,9 @@ module.exports.fetchNotification = async (req, res, next) => {
     const user_id = req.user._id;
     const fetchNotification = await notification
       .find({ to_send: user_id })
-      .populate("user_id").sort({createdAt:-1});
-      
+      .populate("user_id")
+      .sort({ createdAt: -1 });
+
     if (fetchNotification && fetchNotification.length > 0) {
       return res.status(200).json({
         status: true,
@@ -1355,6 +1356,11 @@ module.exports.acceptUser = async (req, res) => {
           as: "about",
         },
       },
+      {
+        $match: {
+          about: { $not: { $size: 0 } } 
+        }
+      }
     ]);
 
     const data = await investorNotificationModel.aggregate([
@@ -1372,6 +1378,11 @@ module.exports.acceptUser = async (req, res) => {
           as: "about",
         },
       },
+      {
+        $match: {
+          about: { $not: { $size: 0 } }
+        }
+      }
     ]);
     console.log(">>>>>>>>>>>>>user", user);
     console.log(">>>>>>>>>>>>>data", data);
