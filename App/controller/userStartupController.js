@@ -1424,7 +1424,11 @@ exports.fetchChat = async (req, res) => {
 
     console.log(`>>>>>>>>>>>  Response Message send ${send}  
     >>>>>>>>>>>   Recieve ${recieve}`);
-    const result = { Send: send, Receive: recieve };
+    // const result = { Send: send, Receive: recieve };
+    const sendMessages = send.map(message => ({ ...message.toObject(), status: 'sender' }));
+    const receiveMessages = recieve.map(message => ({ ...message.toObject(), status: 'receiver' }));
+    
+    const result = [...sendMessages, ...receiveMessages];
 
     res.status(201).json({
       status: true,
