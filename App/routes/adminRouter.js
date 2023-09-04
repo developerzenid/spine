@@ -13,7 +13,8 @@ router.post("/adminVerifyOtp", adminController.verifyotp);
 router.post("/adminChangePass", adminController.setPassword);
 
 router.get("/getListUser", adminController.manageUsers);
-
+router.get("/userInfo", adminController.singleUser);
+router.delete("/deleteUser", adminController.deleteUser);
 
 //   app.use("/", router);
 // };

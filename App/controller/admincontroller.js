@@ -315,13 +315,62 @@ exports.setPassword = async (req, res) => {
 exports.manageUsers = async (req, res) => {
   try {
     console.log(`>>>>>>>>>> inside user manager api >>>>>>>>`);
-    const startupData = await Startup
+    const startupData = await Startup.find()
+    const investorData  = await Investor.find()
+    const final = [...startupData, ...investorData]
+    res.status(201).json({status:true,message:"user fetched successfully", data:final})
   } catch (error) {
-    return res.status(401).send({
+    return res.status(500).send({
       success: false,
-      status: "401",
+      status: "500",
       message: "Something Went Wrongs",
     });
-    console.log("error", error);
+    
   }
 };
+
+exports.singleUser = async(req,res)=>{
+  try{
+    console.log(`>>>>>>>>>>>  ${req.query._id} >>>>>>>>>>.`)
+    const startupData = await Startup.findById(req.query._id)
+    const investorData  = await Investor.findById(req.query._id)
+    let result ;
+    if(startupData){
+      result = startupData
+    }
+    if(investorData){
+      result = investorData
+    }
+    res.status(201).json({
+      status:true,
+      message:"user data",
+      data:result
+    })
+  }catch(error){
+    return res.status(500).send({
+      success: false,
+      status: "500",
+      message: "Something Went Wrongs",
+    });
+  }
+}
+exports.deleteUser = async(req,res)=>{
+  try{
+    console.log(`${req.query._id}`)
+    if(!req.query._id){
+      return res.status(404).json({status:false,message:'id is missing'})
+    }
+    const startupData = await Startup.findByIdAndDelete(req.query._id)
+    const investorData  = await Investor.findByIdAndDelete(req.query._id)
+    if(startupData ||investorData ){
+      res.status(201).json({status:true,message:`user deleted successfully`})
+    }
+
+  }catch(error){
+    return res.status(500).send({
+      success: false,
+      status: "500",
+      message: "Something Went Wrongs",
+    });
+  }
+}
