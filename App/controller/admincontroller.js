@@ -2,6 +2,8 @@ let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
 const SendOtp = require("../middlewares/sendOtp");
 let adminModel = require("../models/adminModel");
+const Investor = require("../models/userInvestorModel");
+const Startup = require("../models/userStartupModel");
 
 exports.adminSignUp = async (req, res, next) => {
   try {
@@ -302,6 +304,20 @@ exports.setPassword = async (req, res) => {
     }
   } catch (error) {
     res.status(401).send({
+      success: false,
+      status: "401",
+      message: "Something Went Wrongs",
+    });
+    console.log("error", error);
+  }
+};
+
+exports.manageUsers = async (req, res) => {
+  try {
+    console.log(`>>>>>>>>>> inside user manager api >>>>>>>>`);
+    const startupData = await Startup
+  } catch (error) {
+    return res.status(401).send({
       success: false,
       status: "401",
       message: "Something Went Wrongs",

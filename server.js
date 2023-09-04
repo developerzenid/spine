@@ -118,7 +118,11 @@ io.on("connection", (socket) => {
       console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`);
       console.log(`>>>>>>>>>>>>2 ${data} received >>>>>>>>>>>>`);
       console.log(`>>>>>>>>>>>>3 ${data.message} >>>>>>>>>>>>`);
+      
+
       socket.to(sendId).to(userId).emit("receivedMsg", data.message);
+
+
       const check = await Chat.create({
         user_id: data.from,
         to_send: data.to,

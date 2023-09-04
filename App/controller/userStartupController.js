@@ -1390,6 +1390,11 @@ module.exports.acceptUser = async (req, res) => {
 
     const finalResult = [...user, ...data];
 
+    if (finalResult === null) {
+      return res
+        .status(200)
+        .json({ status: false, message: "Accepted users", data: finalResult });
+    }
     res.status(201).json({
       status: true,
       message: `Accepted users`,
@@ -1425,9 +1430,15 @@ exports.fetchChat = async (req, res) => {
     console.log(`>>>>>>>>>>>  Response Message send ${send}  
     >>>>>>>>>>>   Recieve ${recieve}`);
     // const result = { Send: send, Receive: recieve };
-    const sendMessages = send.map(message => ({ ...message.toObject(), status: 'sender' }));
-    const receiveMessages = recieve.map(message => ({ ...message.toObject(), status: 'receiver' }));
-    
+    const sendMessages = send.map((message) => ({
+      ...message.toObject(),
+      status: "sender",
+    }));
+    const receiveMessages = recieve.map((message) => ({
+      ...message.toObject(),
+      status: "receiver",
+    }));
+
     const result = [...sendMessages, ...receiveMessages];
 
     res.status(201).json({
@@ -1435,6 +1446,44 @@ exports.fetchChat = async (req, res) => {
       message: `Chat messages`,
       data: result,
     });
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.listChatUsers = async (req, res) => {
+  try {
+    console.log(
+      `>>>>>>>>>>>>>> list chat users for ${req.user._id}>>>>>>>>>>>>>`
+    );
+    const data = await Chat.find({ user_id: req.user._id });
+    let chatUser = new Set([]);
+    data.forEach((user) => {
+      // console.log(user.to_send);
+      if(!chatUser.has(user.to_send)){
+        chatUser.push(user.to_send);
+      }
+    });
+
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>>  chat users ${chatUser}`);
+
+    let listUsers = [];
+    chatUser.forEach(async (id) => {
+      console.log("ID ", id);
+      const startupData = await UserModel.findById(id);
+      const investorData = await investorModel.findById(id);
+      if (startupData !== null) {
+        listUsers.push(startupData);
+      }
+      if (investorData !== null) {
+        listUsers.push(investorData);
+      }
+    });
+    console.log(`>>>>>>>>>>>>>>>>>>>>>> list users from db    ${listUsers}`);
   } catch (err) {
     return res.status(401).json({
       status: false,
