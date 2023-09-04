@@ -1390,16 +1390,18 @@ module.exports.acceptUser = async (req, res) => {
 
     const finalResult = [...user, ...data];
 
-    if (finalResult === null) {
+    if (finalResult.length !== 0) {
+      console.log(">>>>>>>>>>>")
+      return res.status(201).json({
+        status: true,
+        message: `Accepted users`,
+        data: finalResult,
+      });
+    } else {
       return res
         .status(200)
-        .json({ status: false, message: "Accepted users", data: finalResult });
+        .json({ status: false, message: "users", data: finalResult });
     }
-    res.status(201).json({
-      status: true,
-      message: `Accepted users`,
-      data: finalResult,
-    });
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1464,9 +1466,8 @@ exports.listChatUsers = async (req, res) => {
     let chatUser = new Set([]);
     data.forEach((user) => {
       // console.log(user.to_send);
-      if(!chatUser.has(user.to_send)){
-        chatUser.push(user.to_send);
-      }
+      // if(user.to_send !)
+      chatUser.add(user.to_send);
     });
 
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>  chat users ${chatUser}`);
