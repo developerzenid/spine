@@ -4,8 +4,10 @@ let NotificationModel = require("../models/notificationModel.js");
 let statUpAcceptModel = require("../models/startUpRequestAcceptModel.js");
 let investorNotificationModel = require("../models/investorNotificationModel.js");
 const Chat = require("../models/socketmessage.js");
+const process = require("process");
 let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const SendOtp = require("../middlewares/sendOtp.js");
 var FCM = require("fcm-node");
 // var serverKey = 'AAAA8LU-rPM:APA91bHIYE9UyPl0k2waaRUfQUZQ-ci0x66hLyPT2X1dv67spaDtc_VHjX7zNtXsDUns9Qvh4IDqGZTrlCiVIexyH2lrVJsdbNEoW_A1jW4yOX3lCtMq6n6BKIRhhwMtKhjV6kiIW7Kk'; //put your server key here
@@ -1391,7 +1393,7 @@ module.exports.acceptUser = async (req, res) => {
     const finalResult = [...user, ...data];
 
     if (finalResult.length !== 0) {
-      console.log(">>>>>>>>>>>")
+      console.log(">>>>>>>>>>>");
       return res.status(201).json({
         status: true,
         message: `Accepted users`,
@@ -1462,29 +1464,43 @@ exports.listChatUsers = async (req, res) => {
     console.log(
       `>>>>>>>>>>>>>> list chat users for ${req.user._id}>>>>>>>>>>>>>`
     );
-    const data = await Chat.find({ user_id: req.user._id });
-    let chatUser = new Set([]);
-    data.forEach((user) => {
-      // console.log(user.to_send);
-      // if(user.to_send !)
-      chatUser.add(user.to_send);
+    const data = await Chat.find({ user_id: req.user._id }).sort({
+      createdAt: -1,
     });
 
-    console.log(`>>>>>>>>>>>>>>>>>>>>>>>  chat users ${chatUser}`);
-
+    let chatUser = [];
     let listUsers = [];
-    chatUser.forEach(async (id) => {
-      console.log("ID ", id);
-      const startupData = await UserModel.findById(id);
-      const investorData = await investorModel.findById(id);
-      if (startupData !== null) {
-        listUsers.push(startupData);
-      }
-      if (investorData !== null) {
-        listUsers.push(investorData);
+    data.forEach((user) => {
+      if (!chatUser.includes(user.to_send)) {
+        if (user.to_send !== "null") {
+          chatUser.push(user.to_send);
+        }
       }
     });
-    console.log(`>>>>>>>>>>>>>>>>>>>>>> list users from db    ${listUsers}`);
+
+    for(const id of chatUser) {
+      console.log("ID ", id);
+      const startupData = await UserModel.find({
+        _id: mongoose.Types.ObjectId(id),
+      });
+      const investorData = await investorModel.find({
+        _id: mongoose.Types.ObjectId(id),
+      });
+
+      if (startupData.length !== 0) {
+        console.log(">>>>.. startup >>>>>>>");
+        listUsers.push(...startupData);
+      }
+      if (investorData.length !== 0) {
+        console.log(">>>>>>>>>. investor >>>>");
+        listUsers.push(...investorData);
+      }
+    };
+
+    res
+      .status(201)
+      .json({ status: true, message: "user data fetched", data: listUsers });
+
   } catch (err) {
     return res.status(401).json({
       status: false,
