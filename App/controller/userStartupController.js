@@ -1249,7 +1249,7 @@ module.exports.acceptRequest = async (req, res, next) => {
       to: User.mobile_token,
       notification: {
         title: "notification",
-        body: `${loginUser.startupName} started following you`,
+        body: `${newUser[0].startupName} started following you`,
       },
     };
     fcm.send(message, function (err, response) {
