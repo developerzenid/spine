@@ -1210,9 +1210,8 @@ module.exports.acceptRequest = async (req, res, next) => {
     console.log(req.user._id);
     const loginUser = await UserModel.find({ _id: req.user._id });
 
-
-    let newUser = {...loginUser}
-    console.log(">>>>>>>new user",newUser)
+    let newUser = { ...loginUser };
+    console.log(">>>>>>>new user", newUser);
 
     const Notificationcreate = await investorNotificationModel.create({
       user_id: req.user._id,
@@ -1454,8 +1453,13 @@ exports.fetchChat = async (req, res) => {
     }));
 
     const result = [...sendMessages, ...receiveMessages];
+    if (result.length === 0) {
+      return res
+        .status(200)
+        .json({ status: false, message: "Chat messages", data: result });
+    }
 
-    res.status(201).json({
+    res.status(200).json({
       status: true,
       message: `Chat messages`,
       data: result,
