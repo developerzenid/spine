@@ -1047,6 +1047,7 @@ module.exports.fetchNotification = async (req, res, next) => {
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
+    console.log(req.body)
     const { user_id, _id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });
@@ -1060,6 +1061,7 @@ module.exports.acceptRequest = async (req, res, next) => {
       to: user_id,
       status: "accept",
     });
+
     let acceptNotfication = await investorNotification.findByIdAndUpdate(
       { _id: _id },
       { $set: { status: "accept", title: "Started following you" } }

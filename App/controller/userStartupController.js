@@ -1207,18 +1207,28 @@ module.exports.acceptRequest = async (req, res, next) => {
     const User = await investorModel.findOne({ _id: user_id });
     console.log("User", User);
     console.log("User toklen", User.mobile_token);
-    const loginUser = await UserModel.findOne({ _id: req.user._id });
-    const Notificationcreate =
-      await investorNotificationModel.findByIdAndUpdate({
-        user_id: req.user._id,
-        title: `${loginUser.startupName} started following you`,
-        status: "accept",
-      });
+    console.log(req.user._id);
+    const loginUser = await UserModel.find({ _id: req.user._id });
+
+
+    let newUser = {...loginUser}
+    console.log(">>>>>>>new user",newUser)
+
+    const Notificationcreate = await investorNotificationModel.create({
+      user_id: req.user._id,
+      to_send: user_id,
+      title: `${newUser[0].startupName} started following you`,
+      status: "accept",
+    });
+    console.log(Notificationcreate);
 
     const startUpRequestAccept = await notification.findByIdAndUpdate(
       { _id: _id },
       { $set: { status: "accept", title: "Started following you" } }
     );
+    if (!startUpRequestAccept) {
+      console.log("notification");
+    }
 
     // //used to insert user in user model interseted
     // loginUser.intrestedIn.includes(Notificationcreate.to_send)
@@ -1478,7 +1488,7 @@ exports.listChatUsers = async (req, res) => {
       }
     });
 
-    for(const id of chatUser) {
+    for (const id of chatUser) {
       console.log("ID ", id);
       const startupData = await UserModel.find({
         _id: mongoose.Types.ObjectId(id),
@@ -1495,12 +1505,11 @@ exports.listChatUsers = async (req, res) => {
         console.log(">>>>>>>>>. investor >>>>");
         listUsers.push(...investorData);
       }
-    };
+    }
 
     res
       .status(201)
       .json({ status: true, message: "user data fetched", data: listUsers });
-
   } catch (err) {
     return res.status(401).json({
       status: false,
