@@ -167,6 +167,7 @@ exports.resetPassword = async (req, res) => {
         message: `User not found with email: ${req.body.email}`,
       });
     }
+    f;
 
     const otp = Math.floor(1000 + Math.random() * 9000);
 
@@ -315,62 +316,106 @@ exports.setPassword = async (req, res) => {
 exports.manageUsers = async (req, res) => {
   try {
     console.log(`>>>>>>>>>> inside user manager api >>>>>>>>`);
-    const startupData = await Startup.find()
-    const investorData  = await Investor.find()
-    const final = [...startupData, ...investorData]
-    res.status(201).json({status:true,message:"user fetched successfully", data:final})
+    const startupData = await Startup.find();
+    const investorData = await Investor.find();
+    const final = [...startupData, ...investorData];
+    res
+      .status(201)
+      .json({
+        status: true,
+        message: "user fetched successfully",
+        data: final,
+      });
   } catch (error) {
     return res.status(500).send({
       success: false,
       status: "500",
       message: "Something Went Wrongs",
     });
-    
   }
 };
 
-exports.singleUser = async(req,res)=>{
-  try{
-    console.log(`>>>>>>>>>>>  ${req.query._id} >>>>>>>>>>.`)
-    const startupData = await Startup.findById(req.query._id)
-    const investorData  = await Investor.findById(req.query._id)
-    let result ;
-    if(startupData){
-      result = startupData
+exports.singleUser = async (req, res) => {
+  try {
+    console.log(`>>>>>>>>>>>  ${req.query._id} >>>>>>>>>>.`);
+    const startupData = await Startup.findById(req.query._id);
+    const investorData = await Investor.findById(req.query._id);
+    let result;
+    if (startupData) {
+      result = startupData;
     }
-    if(investorData){
-      result = investorData
+    if (investorData) {
+      result = investorData;
     }
     res.status(201).json({
-      status:true,
-      message:"user data",
-      data:result
-    })
-  }catch(error){
+      status: true,
+      message: "user data",
+      data: result,
+    });
+  } catch (error) {
     return res.status(500).send({
       success: false,
       status: "500",
       message: "Something Went Wrongs",
     });
   }
-}
-exports.deleteUser = async(req,res)=>{
-  try{
-    console.log(`${req.query._id}`)
-    if(!req.query._id){
-      return res.status(404).json({status:false,message:'id is missing'})
+};
+exports.deleteUser = async (req, res) => {
+  try {
+    console.log(`${req.query._id}`);
+    if (!req.query._id) {
+      return res.status(404).json({ status: false, message: "id is missing" });
     }
-    const startupData = await Startup.findByIdAndDelete(req.query._id)
-    const investorData  = await Investor.findByIdAndDelete(req.query._id)
-    if(startupData ||investorData ){
-      res.status(201).json({status:true,message:`user deleted successfully`})
+    const startupData = await Startup.findByIdAndDelete(req.query._id);
+    const investorData = await Investor.findByIdAndDelete(req.query._id);
+    if (startupData || investorData) {
+      res
+        .status(201)
+        .json({ status: true, message: `user deleted successfully` });
     }
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      status: "500",
+      message: "Something Went Wrongs",
+    });
+  }
+};
 
-  }catch(error){
-    return res.status(500).send({
-      success: false,
-      status: "500",
-      message: "Something Went Wrongs",
+exports.updateAdminProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const userData = await adminModel.findOne({ _id: req.user._id });
+    let profilePic; // Default profile picture
+    console.log("object", req.file);
+    if (req.file) {
+      profilePic = req.file.location;
+    } else {
+      profilePic = userData.profilePic;
+    }
+    console.log("profilePic", profilePic);
+    await adminModel.findByIdAndUpdate(
+      { _id: req.user._id },
+      {
+        $set: {
+          name: name ? name : userData.name,
+          email: email ? email : userData.email,
+          profilePic: profilePic,
+        },
+      }
+    );
+
+    const fetchdata = await adminModel.findOne({ _id: req.user._id });
+
+    return res.status(200).json({
+      status: true,
+      message: "Profile Updated Successfully",
+      response: fetchdata,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
     });
   }
-}
+};
