@@ -257,61 +257,61 @@ exports.verifyotp = async (req, res) => {
   }
 };
 
-exports.setPassword = async (req, res) => {
-  const { password, password_confirmation, email } = req.body;
-  console.log(req.body);
-  try {
-    const checkotpVerify = await adminModel.findOne({ email: email });
-    console.log(checkotpVerify?.otp_verified == true);
-    if (checkotpVerify?.otp_verified) {
-      console.log(">>>>>> true >>>>>>>>>");
-      const salt = await bcrypt.genSalt(10);
-      const newHashPassword = await bcrypt.hash(password, salt);
-      if (password === password_confirmation) {
-        const saved_user = await adminModel.findOneAndUpdate(
-          { email: email },
-          { $set: { password: newHashPassword } }
-        );
-        const otp_verified = await adminModel.findOneAndUpdate(
-          { email: email },
-          { $set: { otp_verified: false } }
-        );
-        if (saved_user) {
-          res.status(200).send({
-            success: true,
-            status: "200",
-            message: "Set Password succesfully",
-          });
-        } else {
-          res.status(401).send({
-            success: false,
-            status: "401",
-            message: "Something Went Wrongs",
-          });
-        }
-      } else {
-        res.status(401).send({
-          success: false,
-          status: "401",
-          message: "Password And password_confirmation don't Match ",
-        });
-      }
-    } else {
-      res.status(401).send({
-        success: false,
-        status: "401",
-        message: "Please resend otp again",
-      });
-    }
-  } catch (error) {
-    res.status(401).send({
-      success: false,
-      status: "401",
-      message: "Something Went Wrongs",
-    });
-    console.log("error", error);
-  }
-};
+// exports.setPassword = async (req, res) => {
+//   const { password, password_confirmation, email } = req.body;
+//   console.log(req.body);
+//   try {
+//     const checkotpVerify = await adminModel.findOne({ email: email });
+//     console.log(checkotpVerify?.otp_verified == true);
+//     if (checkotpVerify?.otp_verified) {
+//       console.log(">>>>>> true >>>>>>>>>");
+//       const salt = await bcrypt.genSalt(10);
+//       const newHashPassword = await bcrypt.hash(password, salt);
+//       if (password === password_confirmation) {
+//         const saved_user = await adminModel.findOneAndUpdate(
+//           { email: email },
+//           { $set: { password: newHashPassword } }
+//         );
+//         const otp_verified = await adminModel.findOneAndUpdate(
+//           { email: email },
+//           { $set: { otp_verified: false } }
+//         );
+//         if (saved_user) {
+//           res.status(200).send({
+//             success: true,
+//             status: "200",
+//             message: "Set Password succesfully",
+//           });
+//         } else {
+//           res.status(401).send({
+//             success: false,
+//             status: "401",
+//             message: "Something Went Wrongs",
+//           });
+//         }
+//       } else {
+//         res.status(401).send({
+//           success: false,
+//           status: "401",
+//           message: "Password And password_confirmation don't Match ",
+//         });
+//       }
+//     } else {
+//       res.status(401).send({
+//         success: false,
+//         status: "401",
+//         message: "Please resend otp again",
+//       });
+//     }
+//   } catch (error) {
+//     res.status(401).send({
+//       success: false,
+//       status: "401",
+//       message: "Something Went Wrongs",
+//     });
+//     console.log("error", error);
+//   }
+// };
 
 exports.manageUsers = async (req, res) => {
   try {
@@ -319,13 +319,11 @@ exports.manageUsers = async (req, res) => {
     const startupData = await Startup.find();
     const investorData = await Investor.find();
     const final = [...startupData, ...investorData];
-    res
-      .status(201)
-      .json({
-        status: true,
-        message: "user fetched successfully",
-        data: final,
-      });
+    res.status(201).json({
+      status: true,
+      message: "user fetched successfully",
+      data: final,
+    });
   } catch (error) {
     return res.status(500).send({
       success: false,
@@ -416,6 +414,44 @@ exports.updateAdminProfile = async (req, res) => {
     return res.status(401).json({
       status: false,
       message: err.message,
+    });
+  }
+};
+
+exports.changeAdminPassword = async (req, res, next) => {
+  try {
+    const { oldpassword, newpassword, confirmpassword } = req.body;
+    if (oldpassword && newpassword && confirmpassword) {
+      const { password } = await adminModel.findById({ _id: req.user._id });
+      if (newpassword != confirmpassword) {
+        throw new Error("Newpassword & confirm do not match");
+      } else {
+        const checkPassword = await bcrypt.compare(oldpassword, password);
+        if (checkPassword == false) {
+          throw new Error("Please Check your old password");
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(newpassword, salt);
+        const updatepassword = await adminModel.findByIdAndUpdate(
+          { _id: req.user._id },
+          {
+            $set: { password: hashPassword },
+          },
+          { new: true }
+        );
+        return res.status(200).json({
+          status: true,
+          message: "Password change successfully",
+        });
+      }
+    } else {
+      throw new Error("All filed required");
+    }
+  } catch (err) {
+    return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
     });
   }
 };

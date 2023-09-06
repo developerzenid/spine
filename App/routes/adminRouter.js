@@ -35,7 +35,7 @@ router.post(
 router.post("/adminResetPass", adminController.resetPassword);
 router.post("/adminResendPass", adminController.resendOtp);
 router.post("/adminVerifyOtp", adminController.verifyotp);
-router.post("/adminChangePass", adminController.setPassword);
+router.post("/adminChangePass", adminController.changeAdminPassword);
 
 router.get("/getListUser", adminController.manageUsers);
 router.get("/userInfo", adminController.singleUser);
