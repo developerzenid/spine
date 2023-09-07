@@ -1141,19 +1141,21 @@ module.exports.sentNotification = async (req, res, next) => {
     };
 
     console.log("fcm", fcm);
-    fcm.send(message, function (err, response) {
-      if (err) {
-        console.log("Something has gone wrong!");
-        return res.status(402).json({
-          message: "Notification Not successfully",
-        });
-      } else {
-        console.log("Successfully sent with response: ", response);
-        return res.status(200).json({
-          message: "Notification sent successfully",
-        });
-      }
-    });
+    if(mobileNotify){
+      fcm.send(message, function (err, response) {
+        if (err) {
+          console.log("Something has gone wrong!");
+          return res.status(402).json({
+            message: "Notification Not successfully",
+          });
+        } else {
+          console.log("Successfully sent with response: ", response);
+          return res.status(200).json({
+            message: "Notification sent successfully",
+          });
+        }
+      });
+    }
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1422,6 +1424,58 @@ module.exports.acceptUser = async (req, res) => {
   }
 };
 
+// exports.fetchChat = async (req, res) => {
+//   try {
+//     console.log(
+//       `>>>>>>>>> Fetch chat Login chat  ${req.user._id}  receiver  ${req.query.to_send} >>>>>>>>>>`
+//     );
+//     if (!req.query.to_send) {
+//       return res.status(500).json({ error: "Did not get receiver Id" });
+//     }
+//     const send = await Chat.find({
+//       user_id: req.user._id,
+//       to_send: req.query.to_send,
+//     }).sort({ createdAt: -1 });
+
+//     const recieve = await Chat.find({
+//       user_id: req.query.to_send,
+//       to_send: req.user._id,
+//     }).sort({ createdAt: -1 });
+
+//     console.log(`>>>>>>>>>>>  Response Message send ${send}  
+//     >>>>>>>>>>>   Recieve ${recieve}`);
+//     // const result = { Send: send, Receive: recieve };
+//     const sendMessages = send.map((message) => ({
+//       ...message.toObject(),
+//       status: "sender",
+//     }));
+//     const receiveMessages = recieve.map((message) => ({
+//       ...message.toObject(),
+//       status: "receiver",
+//     }));
+
+//     const result = [...sendMessages, ...receiveMessages]
+//     console.log(result)
+//     if (result.length === 0) {
+//       return res
+//         .status(200)
+//         .json({ status: false, message: "Chat messages", data: result });
+//     }
+
+//     res.status(200).json({
+//       status: true,
+//       message: `Chat messages`,
+//       data: result,
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
+
 exports.fetchChat = async (req, res) => {
   try {
     console.log(
@@ -1442,17 +1496,25 @@ exports.fetchChat = async (req, res) => {
 
     console.log(`>>>>>>>>>>>  Response Message send ${send}  
     >>>>>>>>>>>   Recieve ${recieve}`);
-    // const result = { Send: send, Receive: recieve };
+
     const sendMessages = send.map((message) => ({
       ...message.toObject(),
       status: "sender",
+      time: formatTime(message.createdAt),
     }));
+
     const receiveMessages = recieve.map((message) => ({
       ...message.toObject(),
       status: "receiver",
+      time: formatTime(message.createdAt),
     }));
 
-    const result = [...sendMessages, ...receiveMessages];
+    const result = [...sendMessages, ...receiveMessages].sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    console.log(result);
+
     if (result.length === 0) {
       return res
         .status(200)
@@ -1472,6 +1534,11 @@ exports.fetchChat = async (req, res) => {
     });
   }
 };
+
+function formatTime(date) {
+  const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+  return date.toLocaleString('en-US', options);
+}
 
 exports.listChatUsers = async (req, res) => {
   try {
