@@ -422,7 +422,7 @@ exports.changeAdminPassword = async (req, res, next) => {
   try {
     const { oldpassword, newpassword, confirmpassword } = req.body;
     if (oldpassword && newpassword && confirmpassword) {
-      const { password } = await adminModel.find(req.user._id);
+      const { password } = await adminModel.findById({ _id: req.user._id });
       if (newpassword != confirmpassword) {
         throw new Error("Newpassword & confirm do not match");
       } else {
