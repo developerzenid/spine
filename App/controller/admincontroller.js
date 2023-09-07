@@ -421,6 +421,7 @@ exports.updateAdminProfile = async (req, res) => {
 exports.changeAdminPassword = async (req, res, next) => {
   try {
     const { oldpassword, newpassword, confirmpassword } = req.body;
+    console.log(req.body);
     if (oldpassword && newpassword && confirmpassword) {
       const { password } = await adminModel.findById({ _id: req.user._id });
       if (newpassword != confirmpassword) {
