@@ -168,5 +168,11 @@ module.exports = (app) => {
 
   router.get("/fetchChatUser", checkUserAuth, userControllers.listChatUsers);
 
+  router.put(
+    "/mobileNotify",
+    checkUserAuth,
+    userControllers.updataMobileNotify
+  );
+
   app.use("/", router);
 };

@@ -824,14 +824,12 @@ module.exports.fetchStartupUser = async (req, res, next) => {
       user_id: user_id,
     });
 
-    console.log(sentNotifications)
+    console.log(sentNotifications);
     // Extract the recipient user IDs from sentNotifications
     const recipientIds = sentNotifications.map(
       (notification) => notification.to_send
     );
     console.log("receipt ids that contain user id >>>>>> ", recipientIds);
-
-    
 
     const usersNotInNotification = await UserModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
@@ -949,7 +947,7 @@ module.exports.changePassword = async (req, res, next) => {
 module.exports.sentNotification = async (req, res, next) => {
   try {
     const { user_id } = req.body;
-    const User = await userModels.findOne({ _id: user_id });
+    const User = await userModels.find({ _id: user_id });
     console.log(req.user);
     const loginUser = await investorModel.findOne({ _id: req.user._id });
 
@@ -984,20 +982,25 @@ module.exports.sentNotification = async (req, res, next) => {
     };
     console.log("fcm", fcm);
     console.log("User.mobile_token", User.mobile_token);
-    fcm.send(message, function (err, response) {
-      if (err) {
-        console.log("Something has gone wrong!");
-        return res.status(402).json({
-          
-          message: `Notification Not successfully ${err.message}`
-        });
-      } else {
-        console.log("Successfully sent with response: ", response);
-        return res.status(200).json({
-          message: "Notification sent successfully",
-        });
-      }
-    });
+    if (User.mobileNotify) {
+      fcm.send(message, function (err, response) {
+        if (err) {
+          console.log("Something has gone wrong!");
+          return res.status(402).json({
+            message: `Notification Not successfully ${err.message}`,
+          });
+        } else {
+          console.log("Successfully sent with response: ", response);
+          return res.status(200).json({
+            message: "Notification sent successfully",
+          });
+        }
+      });
+    } else {
+      return res
+        .status(501)
+        .json({ message: "Notification sent successfully" });
+    }
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1016,7 +1019,8 @@ module.exports.fetchNotification = async (req, res, next) => {
     const user_id = req.user._id;
     const fetchNotification = await investorNotification
       .find({ to_send: user_id })
-      .populate("user_id").sort({ createdAt: -1 });
+      .populate("user_id")
+      .sort({ createdAt: -1 });
     // const fetchNotification = await investorNotification.find()
     console.log("fetchNotification", fetchNotification);
     if (fetchNotification && fetchNotification.length > 0) {
@@ -1047,7 +1051,7 @@ module.exports.fetchNotification = async (req, res, next) => {
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
-    console.log(req.body)
+    console.log(req.body);
     const { user_id, _id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });

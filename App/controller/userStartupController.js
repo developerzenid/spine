@@ -1117,7 +1117,7 @@ module.exports.sentNotification = async (req, res, next) => {
       to_send: user_id,
       title: `is intersted in connecting with you`,
     });
-
+    console.log(loginUser);
     if (!loginUser?.intrestedIn) loginUser.intrestedIn = [];
     loginUser.intrestedIn.push(user_id);
     console.log("User.intrestedIn", loginUser.intrestedIn, User);
@@ -1141,7 +1141,7 @@ module.exports.sentNotification = async (req, res, next) => {
     };
 
     console.log("fcm", fcm);
-    if(mobileNotify){
+    if (User.mobileNotify) {
       fcm.send(message, function (err, response) {
         if (err) {
           console.log("Something has gone wrong!");
@@ -1155,6 +1155,10 @@ module.exports.sentNotification = async (req, res, next) => {
           });
         }
       });
+    } else {
+      return res
+        .status(501)
+        .json({ message: "Notification sent successfully" });
     }
   } catch (err) {
     return res.status(401).json({
@@ -1442,7 +1446,7 @@ module.exports.acceptUser = async (req, res) => {
 //       to_send: req.user._id,
 //     }).sort({ createdAt: -1 });
 
-//     console.log(`>>>>>>>>>>>  Response Message send ${send}  
+//     console.log(`>>>>>>>>>>>  Response Message send ${send}
 //     >>>>>>>>>>>   Recieve ${recieve}`);
 //     // const result = { Send: send, Receive: recieve };
 //     const sendMessages = send.map((message) => ({
@@ -1509,8 +1513,8 @@ exports.fetchChat = async (req, res) => {
       time: formatTime(message.createdAt),
     }));
 
-    const result = [...sendMessages, ...receiveMessages].sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
+    const result = [...sendMessages, ...receiveMessages].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
     console.log(result);
@@ -1536,8 +1540,8 @@ exports.fetchChat = async (req, res) => {
 };
 
 function formatTime(date) {
-  const options = { hour: '2-digit', minute: '2-digit', hour12: false };
-  return date.toLocaleString('en-US', options);
+  const options = { hour: "2-digit", minute: "2-digit", hour12: false };
+  return date.toLocaleString("en-US", options);
 }
 
 exports.listChatUsers = async (req, res) => {
@@ -1583,6 +1587,34 @@ exports.listChatUsers = async (req, res) => {
       .json({ status: true, message: "user data fetched", data: listUsers });
   } catch (err) {
     return res.status(401).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.updataMobileNotify = async (req, res) => {
+  try {
+    console.log(
+      `>>>>>>>>>>>>  ${req.user._id}  ${req.body.mobileNotify} >>>>>>>>>>>>>`
+    );
+    const startupUpdate = await UserModel.findByIdAndUpdate(req.user._id, {
+      $set: { mobileNotify: req.body.mobileNotify },
+    });
+    const investerUpdate = await investorModel.findByIdAndUpdate(req.user._id, {
+      $set: { mobileNotify: req.body.mobileNotify },
+    });
+    if (!startupUpdate && !investerUpdate) {
+      return res
+        .status(409)
+        .json({ message: "Failed to update user", status: false });
+    }
+    res
+      .status(200)
+      .json({ message: "User updated successfully", status: true });
+  } catch (err) {
+    return res.status(500).json({
       status: false,
       message: err.message,
       stack: err.stack,

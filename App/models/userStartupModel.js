@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema(
       default: [],
     },
     isActive: { type: Boolean, default: false },
+    mobileNotify: { type: Boolean, default: true },
   },
   {
     timestamps: true,
