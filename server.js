@@ -31,6 +31,7 @@ require("./App/routes/investerMessageRouter.js")(app);
 const admin = require("./App/routes/adminRouter.js");
 const investorProfile = require("./App/routes/investorprofileRouter.js");
 const startupProfile = require("./App/routes/startupprofileRouter.js");
+// require('./App/services/cronjob').cronSchedule
 
 app.use(investorProfile);
 app.use(startupProfile);
@@ -51,6 +52,7 @@ app.use(function (req, res, next) {
 
 //data
 const crypto = require("crypto");
+const { cronSchedule } = require("./App/services/cronjob");
 //Installed Modules
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var burl = "https://api.binance.com";
