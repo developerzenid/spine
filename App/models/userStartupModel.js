@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, default: false },
     mobileNotify: { type: Boolean, default: true },
+    address: { type: String },
   },
   {
     timestamps: true,

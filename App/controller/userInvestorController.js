@@ -9,6 +9,8 @@ const investorNotification = require("../models/investorNotificationModel.js");
 var FCM = require("fcm-node");
 const userModels = require("../models/userStartupModel.js");
 const Notification = require("../models/notificationModel.js");
+const moment = require("moment"); // Import the moment library for date manipulation
+
 const {
   filterDataByMyId,
   filterIntrestedInByMyId,
@@ -35,7 +37,7 @@ module.exports.signup = async (req, res) => {
     const User = await UserModel.findOne({ email: email });
     console.log("data", user);
     if (User) {
-      res.status(201).send({
+      return res.status(201).send({
         success: false,
         status: "201",
         message: "You are register as a StartUp User",
@@ -338,6 +340,7 @@ module.exports.socialLogin = async (req, res) => {
     });
   }
 };
+
 //updateSecurityQuestionAndAnswer..........................................................................................
 module.exports.updateSecurity = async (req, res) => {
   try {
@@ -369,6 +372,7 @@ module.exports.updateSecurity = async (req, res) => {
     console.log("err.............=>", err);
   }
 };
+
 //updateProfile..........................................................................................
 module.exports.updateProfile = async (req, res) => {
   try {
@@ -380,6 +384,7 @@ module.exports.updateProfile = async (req, res) => {
       ticketSize,
       bio,
       typeOfInvestor,
+      address
     } = req.body;
 
     console.log("req.bodyreq.bodyreq.bodyreq.body", req.body);
@@ -399,6 +404,7 @@ module.exports.updateProfile = async (req, res) => {
           typeOfInvestor: typeOfInvestor,
           bio: bio,
           location: location,
+          address:address,
           roundSize: roundSize,
           ticketSize: ticketSize,
           chooseIndustry: chooseIndustry,
@@ -431,6 +437,7 @@ module.exports.updateProfile = async (req, res) => {
     console.log("err.............=>", err);
   }
 };
+
 //getProfile.............................................................
 module.exports.GetProfile = async (req, res) => {
   try {
@@ -451,6 +458,7 @@ module.exports.GetProfile = async (req, res) => {
     console.log("error", err);
   }
 };
+
 // //ChangePassword......................................................................................................................./
 // module.exports.changePassword = async (req, res) => {
 //   const { newPassword, password_confirmation } = req.body
@@ -627,6 +635,7 @@ module.exports.verifySecurity = async (req, res) => {
     console.log("err.............=>", error);
   }
 };
+
 //SetPassword........................................................................................................................
 module.exports.setPassword = async (req, res) => {
   const { password, password_confirmation, email } = req.body;
@@ -668,6 +677,7 @@ module.exports.setPassword = async (req, res) => {
     console.log("error", error);
   }
 };
+
 //updateProfilleSetup2............................................................................
 module.exports.updateProfileSetup2 = async (req, res) => {
   try {
@@ -680,6 +690,7 @@ module.exports.updateProfileSetup2 = async (req, res) => {
       ticketSize,
       bio,
       typeOfInvestor,
+      address
     } = req.body;
     const data = await investorModel.findOneAndUpdate(
       { email: email },
@@ -693,6 +704,7 @@ module.exports.updateProfileSetup2 = async (req, res) => {
           chooseIndustry: chooseIndustry,
           investorStage: investorStage,
           profile_pic: req?.file?.filename,
+          address:address
         },
       },
       { new: true }
@@ -968,6 +980,7 @@ module.exports.sentNotification = async (req, res, next) => {
       await investorModel.findByIdAndUpdate(req.user._id, {
         $set: { intrestedIn: [...User.intrestedIn] },
       });
+
     console.log(
       "updateThisUserForIntrestedInUser",
       updateThisUserForIntrestedInUser
@@ -1014,6 +1027,54 @@ module.exports.sentNotification = async (req, res, next) => {
 //fetch notification
 //****************************************************************************************************************************/
 
+// module.exports.fetchNotification = async (req, res, next) => {
+//   try {
+//     const user_id = req.user._id;
+//     const fetchNotification = await investorNotification
+//       .find({ to_send: user_id })
+//       .populate("user_id")
+//       .sort({ createdAt: -1 });
+
+//     const today = moment();
+//     const yesterday = moment().subtract(1, "day");
+//     const oneWeekAgo = moment().subtract(7, "days");
+//     const oneMonthAgo = moment().subtract(1, "month");
+
+//     const categorizedNotifications = {
+//       today: [],
+//       yesterday: [],
+//       week: [],
+//       month: [],
+//     };
+
+//     fetchNotification.forEach((notification) => {
+//       const createdAt = moment(notification.createdAt);
+
+//       if (createdAt.isSame(today, "day")) {
+//         categorizedNotifications.today.push(notification);
+//       } else if (createdAt.isSame(yesterday, "day")) {
+//         categorizedNotifications.yesterday.push(notification);
+//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
+//         categorizedNotifications.week.push(notification);
+//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
+//         categorizedNotifications.month.push(notification);
+//       }
+//     });
+
+//     return res.status(200).json({
+//       status: true,
+//       message: "Notification sent successfully",
+//       response: categorizedNotifications,
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
+
 module.exports.fetchNotification = async (req, res, next) => {
   try {
     const user_id = req.user._id;
@@ -1021,13 +1082,34 @@ module.exports.fetchNotification = async (req, res, next) => {
       .find({ to_send: user_id })
       .populate("user_id")
       .sort({ createdAt: -1 });
-    // const fetchNotification = await investorNotification.find()
-    console.log("fetchNotification", fetchNotification);
-    if (fetchNotification && fetchNotification.length > 0) {
+
+    const categorizedNotifications = fetchNotification.map((notification) => {
+      const createdAt = moment(notification.createdAt);
+      const today = moment();
+      const yesterday = moment().subtract(1, 'day');
+      const oneWeekAgo = moment().subtract(7, 'days');
+      const oneMonthAgo = moment().subtract(1, 'month');
+
+      let type = '';
+
+      if (createdAt.isSame(today, 'day')) {
+        type = 'today';
+      } else if (createdAt.isSame(yesterday, 'day')) {
+        type = 'yesterday';
+      } else if (createdAt.isBetween(oneWeekAgo, today)) {
+        type = 'week';
+      } else if (createdAt.isBetween(oneMonthAgo, today)) {
+        type = 'month';
+      }
+
+      return { ...notification.toObject(), type };
+    });
+
+    if (categorizedNotifications && categorizedNotifications.length > 0) {
       return res.status(200).json({
         status: true,
         message: "Notification sent successfully",
-        response: fetchNotification,
+        response: categorizedNotifications,
       });
     } else {
       return res.status(200).json({
@@ -1044,6 +1126,7 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
+
 
 //*****************************************************************************************************************************/
 //accept request

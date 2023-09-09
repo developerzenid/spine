@@ -32,32 +32,6 @@ module.exports = (app) => {
     }),
   });
 
-  // var aws = require("aws-sdk"),
-  //     multerS3 = require("multer-s3");
-  // aws.config.update({
-  //     accessKeyId: "AKIA3EMPVBHSQZALZSF5",
-  //     secretAccessKey: "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",
-  //     region: "us-east-2",
-  // });
-  // s3 = new aws.S3();
-  // upload = multer({
-  //     storage: multerS3({
-  //         s3: s3,
-  //         bucket: "patmire",
-  //         key: function (req, file, cb) {
-  //             cb(null, "public/" + Date.now() + file.originalname); //use Date.now() for unique file keys
-  //         },
-  //     }),
-  // });
-  //authRouter..........................................................................................
-  // router.post("/updateSecurity", checkUserAuth);
-  // router.post("/ChangePassword", checkUserAuth);
-  // // router.post("/setPassword",checkUserAuth);
-  // router.post("/updateProfile", checkUserAuth);
-  // router.post("/setIndustry", checkUserAuth);
-  // router.post("/setfundingteam", checkUserAuth);
-  // router.post("/setfundingRaise", checkUserAuth);
-  // router.post("/getProfile", checkUserAuth);
 
   //simple...............................................................................................
   router.post("/Signup", userControllers.signup);

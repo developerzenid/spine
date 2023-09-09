@@ -257,62 +257,6 @@ exports.verifyotp = async (req, res) => {
   }
 };
 
-// exports.setPassword = async (req, res) => {
-//   const { password, password_confirmation, email } = req.body;
-//   console.log(req.body);
-//   try {
-//     const checkotpVerify = await adminModel.findOne({ email: email });
-//     console.log(checkotpVerify?.otp_verified == true);
-//     if (checkotpVerify?.otp_verified) {
-//       console.log(">>>>>> true >>>>>>>>>");
-//       const salt = await bcrypt.genSalt(10);
-//       const newHashPassword = await bcrypt.hash(password, salt);
-//       if (password === password_confirmation) {
-//         const saved_user = await adminModel.findOneAndUpdate(
-//           { email: email },
-//           { $set: { password: newHashPassword } }
-//         );
-//         const otp_verified = await adminModel.findOneAndUpdate(
-//           { email: email },
-//           { $set: { otp_verified: false } }
-//         );
-//         if (saved_user) {
-//           res.status(200).send({
-//             success: true,
-//             status: "200",
-//             message: "Set Password succesfully",
-//           });
-//         } else {
-//           res.status(401).send({
-//             success: false,
-//             status: "401",
-//             message: "Something Went Wrongs",
-//           });
-//         }
-//       } else {
-//         res.status(401).send({
-//           success: false,
-//           status: "401",
-//           message: "Password And password_confirmation don't Match ",
-//         });
-//       }
-//     } else {
-//       res.status(401).send({
-//         success: false,
-//         status: "401",
-//         message: "Please resend otp again",
-//       });
-//     }
-//   } catch (error) {
-//     res.status(401).send({
-//       success: false,
-//       status: "401",
-//       message: "Something Went Wrongs",
-//     });
-//     console.log("error", error);
-//   }
-// };
-
 exports.manageUsers = async (req, res) => {
   try {
     console.log(`>>>>>>>>>> inside user manager api >>>>>>>>`);
@@ -382,7 +326,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateAdminProfile = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, swipeCount } = req.body;
     const userData = await adminModel.findOne({ _id: req.user._id });
     let profilePic; // Default profile picture
     console.log("object", req.file);
@@ -399,6 +343,7 @@ exports.updateAdminProfile = async (req, res) => {
           name: name ? name : userData.name,
           email: email ? email : userData.email,
           profilePic: profilePic,
+          swipeCount: swipeCount,
         },
       }
     );

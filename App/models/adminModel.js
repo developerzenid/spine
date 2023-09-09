@@ -8,7 +8,8 @@ const AdminSchema = new mongoose.Schema(
     token: { type: String },
     otp: { type: String },
     otp_verified: { type: Boolean, default: false },
-    profilePic:{type:String}
+    profilePic: { type: String },
+    swipeCount: { type: Number },
     // role: {defult: 'user'}
   },
   {

@@ -3,16 +3,6 @@ module.exports = app=>{
     var investorControllers  = require("../controller/userInvestorController.js")
     let {checkUserAuth} = require('../middlewares/investorMiddleware.js')
     let multer =require('multer')
-//image...........................................................................................
-// const storages = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//       cb(null, 'upload');
-//   },
-//   filename: function (req, file, cb) {
-//       cb(null, file.originalname);
-//   }
-// });
-// let uploadImg = multer({ storage: storages });
 
 
 var aws = require("aws-sdk"),
@@ -32,13 +22,6 @@ uploadImg = multer({
         },
     }),
 });
-
-//authRouter..........................................................................................
-// router.post("/updateProfile",checkUserAuth);
-// router.post("/getProfile",checkUserAuth);
-// router.post("/ChangePassword",checkUserAuth);
-// // router.post("/setPassword",checkUserAuth);
-
 
 
 //simple...............................................................................................
