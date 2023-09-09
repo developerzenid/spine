@@ -37,6 +37,7 @@ const investorSchema = new mongoose.Schema(
     },
     mobileNotify: { type: Boolean, default: true },
     address: { type: String },
+    count: { type: Number },
   },
   {
     timestamps: true,
