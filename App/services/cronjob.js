@@ -10,7 +10,6 @@ exports.cronSchedule = cron.schedule("0 0 * * *", async () => {
     console.log("Cron job started");
     const user1 = await Startup.updateMany({}, { $set: { count: 0 } });
     const user2 = await Investor.updateMany({}, { $set: { count: 0 } });
-    console.log(user1, user2);
   } catch (error) {
     console.log(error.stack);
   }

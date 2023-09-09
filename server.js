@@ -52,7 +52,6 @@ app.use(function (req, res, next) {
 
 //data
 const crypto = require("crypto");
-const { cronSchedule } = require("./App/services/cronjob");
 //Installed Modules
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var burl = "https://api.binance.com";
