@@ -31,7 +31,7 @@ require("./App/routes/investerMessageRouter.js")(app);
 const admin = require("./App/routes/adminRouter.js");
 const investorProfile = require("./App/routes/investorprofileRouter.js");
 const startupProfile = require("./App/routes/startupprofileRouter.js");
-require('./App/services/cronjob').cronSchedule
+// require('./App/services/cronjob').cronSchedule
 
 app.use(investorProfile);
 app.use(startupProfile);
