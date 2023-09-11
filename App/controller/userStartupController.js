@@ -1189,56 +1189,6 @@ module.exports.sentNotification = async (req, res, next) => {
 //fetch notification
 //****************************************************************************************************************************/
 
-// module.exports.fetchNotification = async (req, res, next) => {
-//   try {
-//     const user_id = req.user._id;
-//     const fetchNotification = await notification
-//       .find({ to_send: user_id })
-//       .populate("user_id")
-//       .sort({ createdAt: -1 });
-
-//     console.log(fetchNotification);
-
-//     const today = moment();
-//     const yesterday = moment().subtract(1, "day");
-//     const oneWeekAgo = moment().subtract(7, "days");
-//     const oneMonthAgo = moment().subtract(1, "month");
-
-//     const categorizedNotifications = {
-//       today: [],
-//       yesterday: [],
-//       week: [],
-//       month: [],
-//     };
-
-//     fetchNotification.forEach((notification) => {
-//       const createdAt = moment(notification.createdAt);
-
-//       if (createdAt.isSame(today, "day")) {
-//         categorizedNotifications.today.push(notification);
-//       } else if (createdAt.isSame(yesterday, "day")) {
-//         categorizedNotifications.yesterday.push(notification);
-//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-//         categorizedNotifications.week.push(notification);
-//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-//         categorizedNotifications.month.push(notification);
-//       }
-//     });
-
-//     return res.status(200).json({
-//       status: true,
-//       message: "Notification sent successfully",
-//       response: categorizedNotifications,
-//     });
-//   } catch (err) {
-//     return res.status(401).json({
-//       status: false,
-//       message: err.message,
-//       stack: err.stack,
-//     });
-//   }
-// };
-
 module.exports.fetchNotification = async (req, res, next) => {
   try {
     const user_id = req.user._id;
@@ -1247,26 +1197,32 @@ module.exports.fetchNotification = async (req, res, next) => {
       .populate("user_id")
       .sort({ createdAt: -1 });
 
+    console.log(fetchNotification);
+
     const today = moment();
     const yesterday = moment().subtract(1, "day");
     const oneWeekAgo = moment().subtract(7, "days");
     const oneMonthAgo = moment().subtract(1, "month");
 
-    const categorizedNotifications = fetchNotification.map((notification) => {
+    const categorizedNotifications = {
+      today: [],
+      yesterday: [],
+      week: [],
+      month: [],
+    };
+
+    fetchNotification.forEach((notification) => {
       const createdAt = moment(notification.createdAt);
-      let type = "";
 
       if (createdAt.isSame(today, "day")) {
-        type = "today";
+        categorizedNotifications.today.push(notification);
       } else if (createdAt.isSame(yesterday, "day")) {
-        type = "yesterday";
+        categorizedNotifications.yesterday.push(notification);
       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-        type = "week";
+        categorizedNotifications.week.push(notification);
       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-        type = "month";
+        categorizedNotifications.month.push(notification);
       }
-
-      return { ...notification.toObject(), type };
     });
 
     return res.status(200).json({
@@ -1282,6 +1238,50 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
+
+// module.exports.fetchNotification = async (req, res, next) => {
+//   try {
+//     const user_id = req.user._id;
+//     const fetchNotification = await notification
+//       .find({ to_send: user_id })
+//       .populate("user_id")
+//       .sort({ createdAt: -1 });
+
+//     const today = moment();
+//     const yesterday = moment().subtract(1, "day");
+//     const oneWeekAgo = moment().subtract(7, "days");
+//     const oneMonthAgo = moment().subtract(1, "month");
+
+//     const categorizedNotifications = fetchNotification.map((notification) => {
+//       const createdAt = moment(notification.createdAt);
+//       let type = "";
+
+//       if (createdAt.isSame(today, "day")) {
+//         type = "today";
+//       } else if (createdAt.isSame(yesterday, "day")) {
+//         type = "yesterday";
+//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
+//         type = "week";
+//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
+//         type = "month";
+//       }
+
+//       return { ...notification.toObject(), type };
+//     });
+
+//     return res.status(200).json({
+//       status: true,
+//       message: "Notification sent successfully",
+//       response: categorizedNotifications,
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
 
 //*****************************************************************************************************************************/
 //accept request
