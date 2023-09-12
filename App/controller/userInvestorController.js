@@ -1075,63 +1075,6 @@ module.exports.fetchNotification = async (req, res, next) => {
   }
 };
 
-// module.exports.fetchNotification = async (req, res, next) => {
-//   try {
-//     const user_id = req.user._id;
-//     const fetchNotification = await investorNotification
-//       .find({ to_send: user_id })
-//       .populate("user_id")
-//       .sort({ createdAt: -1 });
-
-//     const categorizedNotifications = fetchNotification.map((notification) => {
-//       const createdAt = moment(notification.createdAt);
-//       const today = moment();
-//       const yesterday = moment().subtract(1, "day");
-//       const oneWeekAgo = moment().subtract(7, "days");
-//       const oneMonthAgo = moment().subtract(1, "month");
-
-//       let type = "";
-
-//       if (createdAt.isSame(today, "day")) {
-//         type = "today";
-//       } else if (createdAt.isSame(yesterday, "day")) {
-//         type = "yesterday";
-//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-//         type = "week";
-//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-//         type = "month";
-//       }
-
-//       return { ...notification.toObject(), type };
-//     });
-
-//     if (categorizedNotifications && categorizedNotifications.length > 0) {
-//       return res.status(200).json({
-//         status: true,
-//         message: "Notification sent successfully",
-//         response: categorizedNotifications,
-//       });
-//     } else {
-//       return res.status(200).json({
-//         status: false,
-//         message: "Notification is not available",
-//         response: [],
-//       });
-//     }
-//   } catch (err) {
-//     return res.status(401).json({
-//       status: false,
-//       message: err.message,
-//       stack: err.stack,
-//     });
-//   }
-// };
-
-// //*****************************************************************************************************************************/
-// //accept request
-// //****************************************************************************************************************************/
-
-
 module.exports.acceptRequest = async (req, res, next) => {
   try {
     console.log(req.body);

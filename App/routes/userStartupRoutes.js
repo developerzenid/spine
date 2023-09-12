@@ -32,7 +32,6 @@ module.exports = (app) => {
     }),
   });
 
-
   //simple...............................................................................................
   router.post("/Signup", userControllers.signup);
   router.post("/Login", userControllers.Login);
@@ -147,6 +146,8 @@ module.exports = (app) => {
     checkUserAuth,
     userControllers.updataMobileNotify
   );
+
+  router.patch("/swipeCountPush", checkUserAuth, userControllers.countSet);
 
   app.use("/", router);
 };

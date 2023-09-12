@@ -1119,7 +1119,7 @@ module.exports.sentNotification = async (req, res, next) => {
     const { user_id } = req.body;
     const User = await investorModel.findOne({ _id: user_id });
     const loginUser = await UserModel.findOne({ _id: req.user._id });
-    console.log('login',loginUser.count,'user',User.count )
+    console.log("login", loginUser.count, "user", User.count);
     if (loginUser.count >= process.env.COUNT_LIMIT) {
       return res.status(429).json({
         status: false,
@@ -1151,9 +1151,9 @@ module.exports.sentNotification = async (req, res, next) => {
       },
     };
 
-    const modify = await UserModel.findByIdAndUpdate(loginUser._id, {
-      $inc: { count: 1 }, // Increment the count field by 1
-    });
+    // const modify = await UserModel.findByIdAndUpdate(loginUser._id, {
+    //   $inc: { count: 1 }, // Increment the count field by 1
+    // });
 
     console.log("fcm", fcm);
     if (User.mobileNotify) {
@@ -1238,54 +1238,6 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
-
-// module.exports.fetchNotification = async (req, res, next) => {
-//   try {
-//     const user_id = req.user._id;
-//     const fetchNotification = await notification
-//       .find({ to_send: user_id })
-//       .populate("user_id")
-//       .sort({ createdAt: -1 });
-
-//     const today = moment();
-//     const yesterday = moment().subtract(1, "day");
-//     const oneWeekAgo = moment().subtract(7, "days");
-//     const oneMonthAgo = moment().subtract(1, "month");
-
-//     const categorizedNotifications = fetchNotification.map((notification) => {
-//       const createdAt = moment(notification.createdAt);
-//       let type = "";
-
-//       if (createdAt.isSame(today, "day")) {
-//         type = "today";
-//       } else if (createdAt.isSame(yesterday, "day")) {
-//         type = "yesterday";
-//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-//         type = "week";
-//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-//         type = "month";
-//       }
-
-//       return { ...notification.toObject(), type };
-//     });
-
-//     return res.status(200).json({
-//       status: true,
-//       message: "Notification sent successfully",
-//       response: categorizedNotifications,
-//     });
-//   } catch (err) {
-//     return res.status(401).json({
-//       status: false,
-//       message: err.message,
-//       stack: err.stack,
-//     });
-//   }
-// };
-
-//*****************************************************************************************************************************/
-//accept request
-//****************************************************************************************************************************/
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
@@ -1508,58 +1460,6 @@ module.exports.acceptUser = async (req, res) => {
   }
 };
 
-// exports.fetchChat = async (req, res) => {
-//   try {
-//     console.log(
-//       `>>>>>>>>> Fetch chat Login chat  ${req.user._id}  receiver  ${req.query.to_send} >>>>>>>>>>`
-//     );
-//     if (!req.query.to_send) {
-//       return res.status(500).json({ error: "Did not get receiver Id" });
-//     }
-//     const send = await Chat.find({
-//       user_id: req.user._id,
-//       to_send: req.query.to_send,
-//     }).sort({ createdAt: -1 });
-
-//     const recieve = await Chat.find({
-//       user_id: req.query.to_send,
-//       to_send: req.user._id,
-//     }).sort({ createdAt: -1 });
-
-//     console.log(`>>>>>>>>>>>  Response Message send ${send}
-//     >>>>>>>>>>>   Recieve ${recieve}`);
-//     // const result = { Send: send, Receive: recieve };
-//     const sendMessages = send.map((message) => ({
-//       ...message.toObject(),
-//       status: "sender",
-//     }));
-//     const receiveMessages = recieve.map((message) => ({
-//       ...message.toObject(),
-//       status: "receiver",
-//     }));
-
-//     const result = [...sendMessages, ...receiveMessages]
-//     console.log(result)
-//     if (result.length === 0) {
-//       return res
-//         .status(200)
-//         .json({ status: false, message: "Chat messages", data: result });
-//     }
-
-//     res.status(200).json({
-//       status: true,
-//       message: `Chat messages`,
-//       data: result,
-//     });
-//   } catch (err) {
-//     return res.status(401).json({
-//       status: false,
-//       message: err.message,
-//       stack: err.stack,
-//     });
-//   }
-// };
-
 exports.fetchChat = async (req, res) => {
   try {
     console.log(
@@ -1693,6 +1593,42 @@ exports.updataMobileNotify = async (req, res) => {
     res
       .status(200)
       .json({ message: "User updated successfully", status: true });
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.countSet = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    console.log("userId : ", userId);
+    const user1 = await UserModel.findOne({ _id: req.user._id });
+    const user2 = await investorModel.findOne({ _id: req.user._id });
+    let loginUser;
+    user1 ? (loginUser = user1) : (loginUser = user2);
+    console.log("loginUser", loginUser);
+    if (loginUser.count >= process.env.COUNT_LIMIT) {
+      return res.status(429).json({
+        status: false,
+        message: "You have reached the limit of sending notifications",
+      });
+    }
+
+    const modifyStartup = await UserModel.findByIdAndUpdate(loginUser._id, {
+      $inc: { count: 1 }, // Increment the count field by 1
+    });
+    const modifyInvestor = await investorModel.findByIdAndUpdate(
+      loginUser._id,
+      {
+        $inc: { count: 1 }, // Increment the count field by 1
+      }
+    );
+
+    res.status(200).json({ message: "Increase", status: true });
   } catch (err) {
     return res.status(500).json({
       status: false,
