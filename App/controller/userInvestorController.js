@@ -961,7 +961,7 @@ module.exports.sentNotification = async (req, res) => {
     const { user_id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });
-    console.log('login',loginUser.count,'user',User.count)
+    console.log("login", loginUser.count, "user", User);
 
     if (loginUser.count >= process.env.COUNT_LIMIT) {
       return res.status(429).json({
@@ -1061,10 +1061,24 @@ module.exports.fetchNotification = async (req, res, next) => {
       }
     });
 
+    if (
+      [
+        ...categorizedNotifications.today,
+        ...categorizedNotifications.yesterday,
+        ...categorizedNotifications.week,
+        ...categorizedNotifications.month,
+      ].length === 0
+    ) {
+      return res.status(409).json({ message: "No data found", status: false });
+    }
+
     return res.status(200).json({
       status: true,
       message: "Notification sent successfully",
-      response: categorizedNotifications,
+      today: categorizedNotifications.today,
+      yesterday: categorizedNotifications.yesterday,
+      week: categorizedNotifications.week,
+      month: categorizedNotifications.month,
     });
   } catch (err) {
     return res.status(401).json({

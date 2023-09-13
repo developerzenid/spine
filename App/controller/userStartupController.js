@@ -1225,6 +1225,16 @@ module.exports.fetchNotification = async (req, res, next) => {
       }
     });
 
+    if (
+      [
+        ...categorizedNotifications.today,
+        ...categorizedNotifications.yesterday,
+        ...categorizedNotifications.week,
+        ...categorizedNotifications.month,
+      ].length === 0
+    ) {
+      return res.status(409).json({ message: "No data found", status: false });
+    }
     return res.status(200).json({
       status: true,
       message: "Notification sent successfully",
