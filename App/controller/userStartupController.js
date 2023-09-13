@@ -1238,10 +1238,14 @@ module.exports.fetchNotification = async (req, res, next) => {
     return res.status(200).json({
       status: true,
       message: "Notification sent successfully",
-      today: categorizedNotifications.today,
-      yesterday: categorizedNotifications.yesterday,
-      week: categorizedNotifications.week,
-      month: categorizedNotifications.month,
+      reponse: [
+        {
+          today: categorizedNotifications.today,
+          yesterday: categorizedNotifications.yesterday,
+          week: categorizedNotifications.week,
+          month: categorizedNotifications.month,
+        },
+      ],
     });
   } catch (err) {
     return res.status(401).json({
