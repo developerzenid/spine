@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema(
     mobileNotify: { type: Boolean, default: true },
     address: { type: String },
     count: { type: Number },
+    lastCountReset: { type: Date, default: null },
   },
   {
     timestamps: true,
