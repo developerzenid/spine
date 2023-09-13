@@ -991,9 +991,9 @@ module.exports.sentNotification = async (req, res) => {
       },
     };
 
-    const modify = await investorModel.findByIdAndUpdate(loginUser._id, {
-      $inc: { count: 1 }, // Increment the count field by 1
-    });
+    // const modify = await investorModel.findByIdAndUpdate(loginUser._id, {
+    //   $inc: { count: 1 }, // Increment the count field by 1
+    // });
 
     if (User.mobileNotify) {
       fcm.send(message, async (err, response) => {
