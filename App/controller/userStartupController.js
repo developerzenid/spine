@@ -966,73 +966,78 @@ module.exports.fetchInvestorupUser = async (req, res, next) => {
 // filter startup data
 // ============================================================================
 
-module.exports.filterStartupData = async (req, res, next) => {
-  const { stStage, location, chooseIndustry, ticketSize } = req.query;
-  console.log(req.query);
-  try {
-    let match = {};
-    if (stStage) {
-      match.startupStage = new RegExp(stStage, "i");
-    }
-    if (location) {
-      match.location = new RegExp(location, "i");
-    }
-    if (chooseIndustry) {
-      match.chooseIndustry = new RegExp(chooseIndustry, "i");
-    }
-    if (ticketSize) {
-      match.ticketSize = new RegExp(ticketSize, "i");
-    }
-    const fetchProfile = await investorModel.aggregate([{ $match: match }]);
+// module.exports.filterStartupData = async (req, res, next) => {
+//   const { stStage, location, chooseIndustry, ticketSize } = req.query;
+//   console.log(req.query);
+//   try {
+//     let match = {};
+//     if (stStage) {
+//       match.startupStage = new RegExp(stStage, "i");
+//     }
+//     if (location) {
+//       match.location = new RegExp(location, "i");
+//     }
+//     if (chooseIndustry) {
+//       match.chooseIndustry = new RegExp(chooseIndustry, "i");
+//     }
+//     if (ticketSize) {
+//       match.ticketSize = new RegExp(ticketSize, "i");
+//     }
+//     const fetchProfile = await investorModel.aggregate([{ $match: match }]);
 
-    return res.status(200).json({
-      status: true,
-      response: fetchProfile,
-    });
-  } catch (err) {
-    return res.status(401).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};
+//     return res.status(200).json({
+//       status: true,
+//       response: fetchProfile,
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
 
 module.exports.fetchAllInvesterUser = async (req, res, next) => {
-  try {
-    const { stStage, location, chooseIndustry, ticketSize } = req.query;
-    console.log(req.query);
-      let match = {};
-      if (stStage) {
-        match.startupStage = new RegExp(stStage, "i");
-      }
-      if (location) {
-        match.location = new RegExp(location, "i");
-      }
-      if (chooseIndustry) {
-        match.chooseIndustry = new RegExp(chooseIndustry, "i");
-      }
-      if (ticketSize) {
-        match.ticketSize = new RegExp(ticketSize, "i");
-      }
-      const fetchProfile = await investorModel.aggregate([{ $match: match }])
+  const { stStage, location, chooseIndustry, ticketSize } = req.query;
 
-    console.log("object", fetchProfile.length);
+  // Prepare a match object for filtering
+  const match = {};
+
+  if (stStage) {
+    match.investorStage = { $regex: new RegExp(stStage, "i") };
+  }
+
+  if (location) {
+    match.location = { $regex: new RegExp(location, "i") };
+  }
+
+  if (chooseIndustry) {
+    match.chooseIndustry = { $regex: new RegExp(chooseIndustry, "i") };
+  }
+
+  if (ticketSize) {
+    match.ticketSize = { $regex: new RegExp(ticketSize, "i") };
+  }
+
+  try {
+    const fetchProfile = await investorModel.aggregate([{ $match: match }]);
+
     if (fetchProfile.length > 0) {
       return res.status(200).json({
         status: true,
-        message: "Profile all fetch successfully",
+        message: "Profiles fetched successfully",
         response: fetchProfile,
       });
     } else {
-      return res.status(201).json({
-        status: false,
-        message: "Profile all fetch successfully",
+      return res.status(200).json({
+        status: true,
+        message: "No matching profiles found",
         response: [],
       });
     }
   } catch (err) {
-    return res.status(401).json({
+    return res.status(500).json({
       status: false,
       message: err.message,
       stack: err.stack,

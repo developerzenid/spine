@@ -95,14 +95,14 @@ module.exports = (app) => {
   router.get(
     "/fetchInvestorUser",
     checkUserAuth,
-    userControllers.fetchInvestorupUser
+    userControllers.fetchAllInvesterUser
   );
-  router.get("/filterStartupData", userControllers.filterStartupData);
+  // router.get("/filterStartupData", userControllers.filterStartupData);
   // router.get("/fetchAllInvester", checkUserAuth, userControllers.fetchInvestorupUser); //todo
   router.get(
     "/fetchAllInvester",
     checkUserAuth,
-    userControllers.fetchAllInvesterUser
+    userControllers.fetchInvestorupUser
   );
 
   router.post(
