@@ -804,7 +804,23 @@ module.exports.fetchMyProfile = async (req, res, next) => {
 
 module.exports.fetchInvesterUser = async (req, res, next) => {
   try {
-    const fetchProfile = await investorModel.find();
+    // const fetchProfile = await investorModel.find();
+    const { stStage, location, chooseIndustry, ticketSize } = req.query;
+    console.log(req.query);
+    let match = {};
+    if (stStage) {
+      match.startupStage = new RegExp(stStage, "i");
+    }
+    if (location) {
+      match.location = new RegExp(location, "i");
+    }
+    if (chooseIndustry) {
+      match.chooseIndustry = new RegExp(chooseIndustry, "i");
+    }
+    if (ticketSize) {
+      match.ticketSize = new RegExp(ticketSize, "i");
+    }
+    const fetchProfile = await UserModel.aggregate([{ $match: match }]);
     console.log("object", fetchProfile.length);
     if (fetchProfile.length > 0) {
       return res.status(200).json({
