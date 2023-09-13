@@ -983,7 +983,7 @@ module.exports.filterStartupData = async (req, res, next) => {
     if (ticketSize) {
       match.ticketSize = new RegExp(ticketSize, "i");
     }
-    const fetchProfile = await UserModel.aggregate([{ $match: match }]);
+    const fetchProfile = await investorModel.aggregate([{ $match: match }]);
 
     return res.status(200).json({
       status: true,
@@ -1002,6 +1002,7 @@ module.exports.fetchAllInvesterUser = async (req, res, next) => {
   try {
     const fetchProfile = await investorModel.find();
     // const fetchProfile = await investorModel.aggregate([{ $sample: { } }]);
+    // const { stStage, location, chooseIndustry, ticketSize } = req.query;
 
     console.log("object", fetchProfile.length);
     if (fetchProfile.length > 0) {

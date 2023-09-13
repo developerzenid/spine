@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: false },
     mobileNotify: { type: Boolean, default: true },
     address: { type: String },
-    count: { type: Number },
+    count: { type: Number, default: 0 },
     lastCountReset: { type: Date, default: null },
   },
   {

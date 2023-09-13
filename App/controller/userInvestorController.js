@@ -961,7 +961,7 @@ module.exports.sentNotification = async (req, res) => {
     const { user_id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });
-    console.log("login", loginUser.count, "user", User);
+    console.log("login", loginUser.count, "user", User.count);
 
     if (loginUser.count >= process.env.COUNT_LIMIT) {
       return res.status(429).json({
