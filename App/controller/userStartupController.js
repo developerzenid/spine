@@ -1030,8 +1030,8 @@ module.exports.fetchAllInvesterUser = async (req, res, next) => {
         response: fetchProfile,
       });
     } else {
-      return res.status(200).json({
-        status: true,
+      return res.status(201).json({
+        status: false,
         message: "No matching profiles found",
         response: [],
       });
