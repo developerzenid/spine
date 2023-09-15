@@ -1166,7 +1166,7 @@ module.exports.sentNotification = async (req, res, next) => {
       to: User.mobile_token,
       notification: {
         title: "notification",
-        body: `is intersted in connecting with you`,
+        body: `${loginUser.startupName} is intersted in connecting with you`,
       },
     };
 
@@ -1279,10 +1279,7 @@ module.exports.acceptRequest = async (req, res, next) => {
   try {
     const { user_id, _id } = req.body;
     const User = await investorModel.findOne({ _id: user_id });
-    console.log("User", User);
-    console.log("User toklen", User.mobile_token);
-    console.log(req.user._id);
-    const loginUser = await UserModel.find({ _id: req.user._id });
+    const loginUser = await UserModel.findOne({ _id: req.user._id });
 
     let newUser = { ...loginUser };
     console.log(">>>>>>>new user", newUser);
@@ -1297,7 +1294,12 @@ module.exports.acceptRequest = async (req, res, next) => {
 
     const startUpRequestAccept = await notification.findByIdAndUpdate(
       { _id: _id },
-      { $set: { status: "accept", title: "Started following you" } }
+      {
+        $set: {
+          status: "accept",
+          title: `${newUser[0].startupName} started following you`,
+        },
+      }
     );
     if (!startUpRequestAccept) {
       console.log("notification");
@@ -1325,19 +1327,21 @@ module.exports.acceptRequest = async (req, res, next) => {
         body: `${newUser[0].startupName} started following you`,
       },
     };
-    fcm.send(message, function (err, response) {
-      if (err) {
-        console.log("Something has gone wrong!");
-        return res.status(402).json({
-          message: "Notification Not successfully",
-        });
-      } else {
-        console.log("Successfully sent with response: ", response);
-        return res.status(200).json({
-          message: "Notification sent successfully",
-        });
-      }
-    });
+    if (User.mobileNotify) {
+      fcm.send(message, function (err, response) {
+        if (err) {
+          console.log("Something has gone wrong!");
+          return res.status(402).json({
+            message: "Notification Not successfully",
+          });
+        } else {
+          console.log("Successfully sent with response: ", response);
+          return res.status(200).json({
+            message: "Notification sent successfully",
+          });
+        }
+      });
+    }
   } catch (err) {
     return res.status(401).json({
       status: false,

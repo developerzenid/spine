@@ -1120,20 +1120,22 @@ module.exports.acceptRequest = async (req, res, next) => {
     const { user_id, _id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });
+
     const Notificationcreate = await Notification.create({
       user_id: req.user._id,
+      to_send: user_id,
       title: `${loginUser.investorName} started following you`,
-      status: "accept",
-    });
-    const investerRequestAccept = await Notification.create({
-      from: req.user._id,
-      to: user_id,
       status: "accept",
     });
 
     let acceptNotfication = await investorNotification.findByIdAndUpdate(
       { _id: _id },
-      { $set: { status: "accept", title: "Started following you" } }
+      {
+        $set: {
+          status: "accept",
+          title: `${loginUser.investorName} started following you`,
+        },
+      }
     );
     var message = {
       to: User.mobile_token,
@@ -1142,20 +1144,22 @@ module.exports.acceptRequest = async (req, res, next) => {
         body: `${loginUser.investorName} started following you`,
       },
     };
-    fcm.send(message, function (err, response) {
-      if (err) {
-        console.log("Something has gone wrong!");
-        return res.status(402).json({
-          message: "Notification Not successfully",
-        });
-      } else {
-        console.log("Successfully sent with response: ", response);
-        return res.status(200).json({
-          message: "Notification sent successfully",
-          response: User,
-        });
-      }
-    });
+    if (User.mobileNotify) {
+      fcm.send(message, function (err, response) {
+        if (err) {
+          console.log("Something has gone wrong!");
+          return res.status(402).json({
+            message: "Notification Not successfully",
+          });
+        } else {
+          console.log("Successfully sent with response: ", response);
+          return res.status(200).json({
+            message: "Notification sent successfully",
+            response: User,
+          });
+        }
+      });
+    }
   } catch (err) {
     return res.status(401).json({
       status: false,
