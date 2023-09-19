@@ -1021,7 +1021,27 @@ module.exports.fetchAllInvesterUser = async (req, res, next) => {
   }
 
   try {
-    const fetchProfile = await investorModel.aggregate([{ $match: match }]);
+    const user_id = req.user._id;
+
+    const sentNotifications = await investorNotificationModel.find({
+      user_id: user_id,
+    });
+
+    const recipientIds = sentNotifications.map(
+      (notification) => notification.to_send
+    );
+    console.log("receipt ids that contain user id >>>>>> ", recipientIds);
+
+    // const usersNotInNotification = await investorModel.aggregate([
+    //   { $match: { _id: { $nin: recipientIds } } },
+    //   { $match: match },
+    //   { $sample: { size: 100000000 } },
+    // ]);
+    const fetchProfile = await investorModel.aggregate([
+      { $match: { _id: { $nin: recipientIds } } },
+      { $match: match },
+      { $sample: { size: 100000000 } },
+    ]);
 
     if (fetchProfile.length > 0) {
       shuffleArray(fetchProfile);
@@ -1290,29 +1310,22 @@ module.exports.acceptRequest = async (req, res, next) => {
     const User = await investorModel.findOne({ _id: user_id });
     const loginUser = await UserModel.findOne({ _id: req.user._id });
 
-    let newUser = { ...loginUser };
-    console.log(">>>>>>>new user", newUser);
-
     const Notificationcreate = await investorNotificationModel.create({
       user_id: req.user._id,
       to_send: user_id,
-      title: `${newUser[0].startupName} started following you`,
+      title: `${loginUser.startupName} started following you`,
       status: "accept",
     });
-    console.log(Notificationcreate);
 
     const startUpRequestAccept = await notification.findByIdAndUpdate(
       { _id: _id },
       {
         $set: {
           status: "accept",
-          title: `${newUser[0].startupName} started following you`,
+          title: `${loginUser.startupName} started following you`,
         },
       }
     );
-    if (!startUpRequestAccept) {
-      console.log("notification");
-    }
 
     // //used to insert user in user model interseted
     // loginUser.intrestedIn.includes(Notificationcreate.to_send)
@@ -1333,7 +1346,7 @@ module.exports.acceptRequest = async (req, res, next) => {
       to: User.mobile_token,
       notification: {
         title: "notification",
-        body: `${newUser[0].startupName} started following you`,
+        body: `${loginUser.startupName} started following you`,
       },
     };
     if (User.mobileNotify) {

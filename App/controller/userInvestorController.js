@@ -850,6 +850,24 @@ module.exports.fetchInvesterUser = async (req, res, next) => {
 };
 
 module.exports.fetchStartupUser = async (req, res, next) => {
+  const { stStage, location, chooseIndustry, ticketSize } = req.query;
+  const match = {};
+
+  if (stStage) {
+    match.startupStage = { $regex: new RegExp(stStage, "i") };
+  }
+
+  if (location) {
+    match.location = { $regex: new RegExp(location, "i") };
+  }
+
+  if (chooseIndustry) {
+    match.chooseIndustry = { $regex: new RegExp(chooseIndustry, "i") };
+  }
+
+  if (ticketSize) {
+    match.ticketSize = { $regex: new RegExp(ticketSize, "i") };
+  }
   try {
     const user_id = req.user._id;
 
@@ -858,7 +876,6 @@ module.exports.fetchStartupUser = async (req, res, next) => {
     });
 
     console.log(sentNotifications);
-    // Extract the recipient user IDs from sentNotifications
     const recipientIds = sentNotifications.map(
       (notification) => notification.to_send
     );
@@ -866,7 +883,7 @@ module.exports.fetchStartupUser = async (req, res, next) => {
 
     const usersNotInNotification = await UserModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
-      // { $match: { otp_verified: true } },
+      { $match: match },
       { $sample: { size: 100000000 } },
     ]);
     console.log("user not notification", usersNotInNotification);
@@ -994,7 +1011,7 @@ module.exports.sentNotification = async (req, res) => {
     const Notificationcreate = await Notification.create({
       user_id: req.user._id,
       to_send: user_id,
-      title: `is intersted in connecting with you`,
+      title: `${loginUser.investorName}is intersted in connecting with you`,
     });
 
     if (!User?.intrestedIn) User.intrestedIn = [];
