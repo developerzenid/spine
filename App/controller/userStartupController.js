@@ -1024,6 +1024,7 @@ module.exports.fetchAllInvesterUser = async (req, res, next) => {
     const fetchProfile = await investorModel.aggregate([{ $match: match }]);
 
     if (fetchProfile.length > 0) {
+      shuffleArray(fetchProfile);
       return res.status(200).json({
         status: true,
         message: "Profiles fetched successfully",
@@ -1044,6 +1045,14 @@ module.exports.fetchAllInvesterUser = async (req, res, next) => {
     });
   }
 };
+
+// Function to shuffle an array using Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
 //*****************************************************************************************************************************/
 //update startup Image
