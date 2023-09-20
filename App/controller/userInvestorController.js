@@ -1,7 +1,7 @@
 let investorModel = require("../models/userInvestorModel.js");
 let UserModel = require("../models/userStartupModel.js");
 let NotificationModel = require("../models/notificationModel.js");
-let investerAcceptModel = require("../models/investerRequestAcceptModel.js");
+const Admin = require("../models/adminModel.js");
 let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
 const SendOtp = require("../middlewares/sendOtp.js");
@@ -459,35 +459,6 @@ module.exports.GetProfile = async (req, res) => {
   }
 };
 
-// //ChangePassword......................................................................................................................./
-// module.exports.changePassword = async (req, res) => {
-//   const { newPassword, password_confirmation } = req.body
-//   const password = req.body.currentPassword
-//   try {
-//     const users = await investorModel.findById(req.user._id)
-//     console.log(users);
-//     const isMatch = await bcrypt.compare(password, users.password)
-//     console.log("data1", isMatch);
-//     if (isMatch == true) {
-//       if (newPassword && password_confirmation) {
-//         if (newPassword !== password_confirmation) {
-//           res.status(401).send({ "success": false, "status": "401", "message": "New Password and Confirm New Password doesn't match" })
-//         } else {
-//           const salt = await bcrypt.genSalt(10)
-//           const newHashPassword = await bcrypt.hash(newPassword, salt)
-//           await UserModel.findByIdAndUpdate(req.user._id, { $set: { password: newHashPassword } })
-//           res.status(200).send({ "success": true, "status": "200", "message": "Password changed succesfully" })
-//         }
-//       } else {
-//         res.status(401).send({ "success": false, "status": "401", "message": "All Fields are Required" })
-//       }
-//     } else {
-//       res.status(401).send({ "message": "Old Password is Wrong" })
-//     }
-//   } catch (error) {
-//     res.status(401).send({ "success": false, "status": "401", "message": "Something Went  Wrong" })
-//   }
-// }
 //Forgot Password.............................................................................................................//
 module.exports.forgotPassword = async (req, res) => {
   try {
@@ -999,9 +970,9 @@ module.exports.sentNotification = async (req, res) => {
     const { user_id } = req.body;
     const User = await userModels.findOne({ _id: user_id });
     const loginUser = await investorModel.findOne({ _id: req.user._id });
-    console.log("login", loginUser.count, "user", User.count);
-
-    if (loginUser.count >= process.env.COUNT_LIMIT) {
+    console.log("login", loginUser.investorName, "user", User.count);
+    const admin = await Admin.find();
+    if (loginUser.count >= admin[0].swipeCount) {
       return res.status(429).json({
         status: false,
         message: "You have reached the limit of sending notifications",
@@ -1150,7 +1121,7 @@ module.exports.acceptRequest = async (req, res, next) => {
       {
         $set: {
           status: "accept",
-          title: `${loginUser.investorName} started following you`,
+          title: `${User.startupName} started following you`,
         },
       }
     );
@@ -1175,6 +1146,11 @@ module.exports.acceptRequest = async (req, res, next) => {
             response: User,
           });
         }
+      });
+    } else {
+      return res.status(200).json({
+        message: "Notification sent successfully",
+        response: User,
       });
     }
   } catch (err) {
@@ -1273,3 +1249,91 @@ module.exports.rejectedRequest = async (req, res, next) => {
 //     });
 //   }
 // };
+
+exports.linkdlnSingup = async (req, res) => {
+  try {
+    const { social_id, email, password } = req.body;
+    const check = await UserModel.findOne({
+      $or: [{ social_id: social_id }, { email: email }],
+    });
+    const checkInvestor = await investorModel.findOne({
+      $or: [{ social_id: social_id }, { email: email }],
+    });
+    if (check || checkInvestor) {
+      return res.status(200).send({
+        success: false,
+        Status: "401",
+        message: "You are already registered",
+      });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+    const data = new investorModel({
+      email: email,
+      social_id: social_id,
+      password: hashPassword,
+    });
+    const user = await data.save();
+    const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "5d",
+    });
+    res.status(200).send({
+      success: true,
+      status: "200",
+      message: "Registration Successfully",
+      user,
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.linkdlnLogin = async (req, res) => {
+  try {
+    const { social_id, email, password } = req.body;
+    console.log(req.body);
+    const checkUser = await investorModel.findOne({
+      $and: [{ email: email }, { social_id: social_id }],
+    });
+    if (!checkUser) {
+      return res.status(401).send({
+        success: false,
+        status: "401",
+        message: "Social_id and email is incorrect",
+      });
+    }
+    const compare = await bcrypt.compare(password, checkUser.password);
+    if (!compare) {
+      return res.status(401).send({
+        success: false,
+        status: "401",
+        message: "Password incorrect",
+      });
+    }
+    const token = jwt.sign(
+      { userID: checkUser._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "5d",
+      }
+    );
+    res.status(200).send({
+      success: true,
+      status: "200",
+      message: "Login succesfully",
+      checkUser,
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};

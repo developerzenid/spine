@@ -19,9 +19,7 @@ var serverKey =
 var fcm = new FCM(serverKey);
 
 const notification = require("../models/notificationModel.js");
-const { status } = require("init");
-const { ObjectId } = require("mongodb");
-const investorModels = require("../models/userInvestorModel.js");
+const Admin = require("../models/adminModel.js");
 
 //chooseRole............................................................................................
 
@@ -416,22 +414,6 @@ module.exports.changePassword = async (req, res) => {
     });
   }
 };
-
-//Forgot Password.............................................................................................................//
-// module.exports.forgotPassword = async (req, res) => {
-//   try {
-//     const { email } = req.body
-//     const data = await UserModel.find({ email: email })
-//     if (data.length == 0) {
-//       res.status(401).send({ "success": false, "status": "401", "message": "You Does't User Please First Register" })
-//     } else {
-//       res.status(200).send({ "success": true, "status": "200", "message": "email Verify succesfully" })
-//     }
-//   } catch (error) {
-//     res.status(401).send({ "success": false, "status": "401", "message": "Something Went Wrongs" })
-//     console.log("err.............=>", err);
-//   }
-// }
 
 //*****************************************************************************************************************************/
 ////// Forgot Password API
@@ -1168,7 +1150,8 @@ module.exports.sentNotification = async (req, res, next) => {
     const User = await investorModel.findOne({ _id: user_id });
     const loginUser = await UserModel.findOne({ _id: req.user._id });
     console.log("login", loginUser.count, "user", User.count);
-    if (loginUser.count >= process.env.COUNT_LIMIT) {
+    const admin = await Admin.find();
+    if (loginUser.count >= admin[0].swipeCount) {
       return res.status(429).json({
         status: false,
         message: "You have reached the limit of sending notifications",
@@ -1178,7 +1161,7 @@ module.exports.sentNotification = async (req, res, next) => {
     const Notificationcreate = await investorNotificationModel.create({
       user_id: req.user._id,
       to_send: user_id,
-      title: `is intersted in connecting with you`,
+      title: `${loginUser.startupName}is intersted in connecting with you`,
     });
 
     console.log(loginUser);
@@ -1322,7 +1305,7 @@ module.exports.acceptRequest = async (req, res, next) => {
       {
         $set: {
           status: "accept",
-          title: `${loginUser.startupName} started following you`,
+          title: `${User.investorName} started following you`,
         },
       }
     );
@@ -1362,6 +1345,10 @@ module.exports.acceptRequest = async (req, res, next) => {
             message: "Notification sent successfully",
           });
         }
+      });
+    } else {
+      return res.status(200).json({
+        message: "Notification sent successfully",
       });
     }
   } catch (err) {
@@ -1673,7 +1660,8 @@ exports.countSet = async (req, res) => {
     let loginUser;
     user1 ? (loginUser = user1) : (loginUser = user2);
     console.log("loginUser", loginUser);
-    if (loginUser.count >= process.env.COUNT_LIMIT) {
+    const admin = await Admin.find();
+    if (loginUser.count >= admin[0].swipeCount) {
       return res.status(429).json({
         status: false,
         message: "You have reached the limit of sending notifications",
@@ -1691,6 +1679,95 @@ exports.countSet = async (req, res) => {
     );
 
     res.status(200).json({ message: "Increase", status: true });
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.linkdlnSingup = async (req, res) => {
+  try {
+    const { social_id, email, password } = req.body;
+    const check = await UserModel.findOne({
+      $or: [{ social_id: social_id }, { email: email }],
+    });
+    const checkInvestor = await investorModel.findOne({
+      $or: [{ social_id: social_id }, { email: email }],
+    });
+    if (check || checkInvestor) {
+      return res.status(200).send({
+        success: false,
+        Status: "401",
+        message: "You are already registered",
+      });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+    const data = new UserModel({
+      email: email,
+      social_id: social_id,
+      password: hashPassword,
+    });
+    const user = await data.save();
+    const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "5d",
+    });
+    res.status(200).send({
+      success: true,
+      status: "200",
+      message: "Registration Successfully",
+      user,
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: false,
+      message: err.message,
+      stack: err.stack,
+    });
+  }
+};
+
+exports.linkdlnLogin = async (req, res) => {
+  try {
+    const { social_id, email, password } = req.body;
+    console.log(req.body);
+    const checkUser = await UserModel.findOne({
+      $and: [{ email: email }, { social_id: social_id }],
+    });
+    console.log(checkUser);
+    if (!checkUser) {
+      return res.status(401).send({
+        success: false,
+        status: "401",
+        message: "Social_id and Email is incorrect",
+      });
+    }
+    const compare = await bcrypt.compare(password, checkUser.password);
+    if (!compare) {
+      return res.status(401).send({
+        success: false,
+        status: "401",
+        message: "Password incorrect",
+      });
+    }
+    const token = jwt.sign(
+      { userID: checkUser._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "5d",
+      }
+    );
+    res.status(200).send({
+      success: true,
+      status: "200",
+      message: "Login succesfully",
+      checkUser,
+      token,
+    });
   } catch (err) {
     return res.status(500).json({
       status: false,

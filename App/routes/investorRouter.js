@@ -57,6 +57,10 @@ uploadImg = multer({
     router.post("/acceptRequest", checkUserAuth,  investorControllers.acceptRequest);
     router.post("/rejectedRequest", checkUserAuth,  investorControllers.rejectedRequest);
 
+    router.post("/linkdlnSignup", investorControllers.linkdlnSingup);
+
+    router.post("/linkdlnLogin", investorControllers.linkdlnLogin);
+
 
 
   app.use('/investor',router);
