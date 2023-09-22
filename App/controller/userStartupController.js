@@ -1220,6 +1220,66 @@ module.exports.sentNotification = async (req, res, next) => {
 //fetch notification
 //****************************************************************************************************************************/
 
+// module.exports.fetchNotification = async (req, res, next) => {
+//   try {
+//     const user_id = req.user._id;
+//     const fetchNotification = await notification
+//       .find({ to_send: user_id })
+//       .populate("user_id")
+//       .sort({ createdAt: -1 });
+
+//     console.log(fetchNotification);
+
+//     const today = moment();
+//     const yesterday = moment().subtract(1, "day");
+//     const oneWeekAgo = moment().subtract(7, "days");
+//     const oneMonthAgo = moment().subtract(1, "month");
+
+//     const categorizedNotifications = {
+//       today: [],
+//       yesterday: [],
+//       week: [],
+//       month: [],
+//     };
+
+//     fetchNotification.forEach((notification) => {
+//       const createdAt = moment(notification.createdAt);
+
+//       if (createdAt.isSame(today, "day")) {
+//         categorizedNotifications.today.push(notification);
+//       } else if (createdAt.isSame(yesterday, "day")) {
+//         categorizedNotifications.yesterday.push(notification);
+//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
+//         categorizedNotifications.week.push(notification);
+//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
+//         categorizedNotifications.month.push(notification);
+//       }
+//     });
+
+//     if (
+//       [
+//         ...categorizedNotifications.today,
+//         ...categorizedNotifications.yesterday,
+//         ...categorizedNotifications.week,
+//         ...categorizedNotifications.month,
+//       ].length === 0
+//     ) {
+//       return res.status(409).json({ message: "No data found", status: false });
+//     }
+//     return res.status(200).json({
+//       status: true,
+//       message: "Notification sent successfully",
+//       reponse: categorizedNotifications
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
+
 module.exports.fetchNotification = async (req, res, next) => {
   try {
     const user_id = req.user._id;
@@ -1235,48 +1295,27 @@ module.exports.fetchNotification = async (req, res, next) => {
     const oneWeekAgo = moment().subtract(7, "days");
     const oneMonthAgo = moment().subtract(1, "month");
 
-    const categorizedNotifications = {
-      today: [],
-      yesterday: [],
-      week: [],
-      month: [],
-    };
-
     fetchNotification.forEach((notification) => {
       const createdAt = moment(notification.createdAt);
 
       if (createdAt.isSame(today, "day")) {
-        categorizedNotifications.today.push(notification);
+        notification.status = "today";
       } else if (createdAt.isSame(yesterday, "day")) {
-        categorizedNotifications.yesterday.push(notification);
+        notification.status = "yesterday";
       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-        categorizedNotifications.week.push(notification);
+        notification.status = "week";
       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-        categorizedNotifications.month.push(notification);
+        notification.status = "month";
       }
     });
 
-    if (
-      [
-        ...categorizedNotifications.today,
-        ...categorizedNotifications.yesterday,
-        ...categorizedNotifications.week,
-        ...categorizedNotifications.month,
-      ].length === 0
-    ) {
+    if (fetchNotification.length === 0) {
       return res.status(409).json({ message: "No data found", status: false });
     }
     return res.status(200).json({
       status: true,
       message: "Notification sent successfully",
-      reponse: [
-        {
-          today: categorizedNotifications.today,
-          yesterday: categorizedNotifications.yesterday,
-          week: categorizedNotifications.week,
-          month: categorizedNotifications.month,
-        },
-      ],
+      response: fetchNotification
     });
   } catch (err) {
     return res.status(401).json({
@@ -1286,6 +1325,8 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
+
+
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
