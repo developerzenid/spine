@@ -1044,55 +1044,33 @@ module.exports.fetchNotification = async (req, res, next) => {
       .populate("user_id")
       .sort({ createdAt: -1 });
 
-    const today = moment();
-    const yesterday = moment().subtract(1, "day");
-    const oneWeekAgo = moment().subtract(7, "days");
-    const oneMonthAgo = moment().subtract(1, "month");
-
-    const categorizedNotifications = {
-      today: [],
-      yesterday: [],
-      week: [],
-      month: [],
-    };
-
-    fetchNotification.forEach((notification) => {
-      const createdAt = moment(notification.createdAt);
-
-      if (createdAt.isSame(today, "day")) {
-        categorizedNotifications.today.push(notification);
-      } else if (createdAt.isSame(yesterday, "day")) {
-        categorizedNotifications.yesterday.push(notification);
-      } else if (createdAt.isBetween(oneWeekAgo, today)) {
-        categorizedNotifications.week.push(notification);
-      } else if (createdAt.isBetween(oneMonthAgo, today)) {
-        categorizedNotifications.month.push(notification);
+      const today = moment();
+      const yesterday = moment().subtract(1, "day");
+      const oneWeekAgo = moment().subtract(7, "days");
+      const oneMonthAgo = moment().subtract(1, "month");
+  
+      fetchNotification.forEach((notification) => {
+        const createdAt = moment(notification.createdAt);
+  
+        if (createdAt.isSame(today, "day")) {
+          notification.status = "today";
+        } else if (createdAt.isSame(yesterday, "day")) {
+          notification.status = "yesterday";
+        } else if (createdAt.isBetween(oneWeekAgo, today)) {
+          notification.status = "week";
+        } else if (createdAt.isBetween(oneMonthAgo, today)) {
+          notification.status = "month";
+        }
+      });
+  
+      if (fetchNotification.length === 0) {
+        return res.status(409).json({ message: "No data found", status: false });
       }
-    });
-
-    if (
-      [
-        ...categorizedNotifications.today,
-        ...categorizedNotifications.yesterday,
-        ...categorizedNotifications.week,
-        ...categorizedNotifications.month,
-      ].length === 0
-    ) {
-      return res.status(409).json({ message: "No data found", status: false });
-    }
-
-    return res.status(200).json({
-      status: true,
-      message: "Notification sent successfully",
-      response: [
-        {
-          today: categorizedNotifications.today,
-          yesterday: categorizedNotifications.yesterday,
-          week: categorizedNotifications.week,
-          month: categorizedNotifications.month,
-        },
-      ],
-    });
+      return res.status(200).json({
+        status: true,
+        message: "Notification fetch successfully",
+        response: fetchNotification
+      });
   } catch (err) {
     return res.status(401).json({
       status: false,

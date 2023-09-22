@@ -1314,7 +1314,7 @@ module.exports.fetchNotification = async (req, res, next) => {
     }
     return res.status(200).json({
       status: true,
-      message: "Notification sent successfully",
+      message: "Notification fetch successfully",
       response: fetchNotification
     });
   } catch (err) {
