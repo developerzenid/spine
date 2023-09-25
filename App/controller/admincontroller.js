@@ -349,15 +349,69 @@ exports.manageUsers = async (req, res) => {
 exports.singleUser = async (req, res) => {
   try {
     console.log(`>>>>>>>>>>>  ${req.query._id} >>>>>>>>>>.`);
-    const startupData = await Startup.findById(req.query._id);
-    const investorData = await Investor.findById(req.query._id);
-    let result;
-    if (startupData) {
-      result = startupData;
+    const startupData = await Startup.findById(req.query._id)
+      .select({
+        _id: 1,
+        profile_pic: 1,
+        startupName: 1,
+        email: 1,
+        role: 1,
+        isActive: 1,
+        location: 1,
+        createdAt: 1,
+        bio: 1,
+        count: 1,
+        lastCountReset: 1,
+      })
+      .lean();
+
+    const investorData = await Investor.findById(req.query._id)
+      .select({
+        _id: 1,
+        profile_pic: 1,
+        investorName: 1,
+        email: 1,
+        role: 1,
+        isActive: 1,
+        location: 1,
+        createdAt: 1,
+        bio: 1,
+        count: 1,
+        lastCountReset: 1,
+      })
+      .lean();
+    const swipe = await Admin.find().select("swipeCount");
+
+    let result = startupData ? startupData : investorData;
+
+    result.date = result.createdAt.toISOString().split("T")[0];
+
+    const currentDateTime = moment();
+    const swipeResetDuration = moment.duration(24, "hours");
+
+    result.totalSwipe = swipe[0].swipeCount;
+    result.swipeLeft = swipe[0].swipeCount - result.count;
+    let resetTimeLeft = "0:0 hr";
+
+    if (result.lastCountReset) {
+      const lastCountResetTimestamp = result.lastCountReset;
+      const lastCountResetDate = moment(lastCountResetTimestamp);
+
+      const timeElapsed = moment.duration(
+        currentDateTime.diff(lastCountResetDate)
+      );
+      let timeLeft = swipeResetDuration.subtract(timeElapsed);
+
+      if (timeLeft.asMinutes() < 0) {
+        timeLeft = moment.duration(0);
+      } else {
+        const hours = Math.floor(timeLeft.asHours());
+        const minutes = timeLeft.minutes();
+        resetTimeLeft = `${hours}:${minutes} hr`;
+      }
     }
-    if (investorData) {
-      result = investorData;
-    }
+    result.timeLeft = resetTimeLeft;
+
     res.status(201).json({
       status: true,
       message: "user data",
@@ -368,9 +422,11 @@ exports.singleUser = async (req, res) => {
       success: false,
       status: "500",
       message: "Something Went Wrongs",
+      error: error.stack,
     });
   }
 };
+
 exports.deleteUser = async (req, res) => {
   try {
     console.log(`${req.query._id}`);
