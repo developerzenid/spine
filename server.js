@@ -31,7 +31,7 @@ require("./App/routes/investerMessageRouter.js")(app);
 const admin = require("./App/routes/adminRouter.js");
 const investorProfile = require("./App/routes/investorprofileRouter.js");
 const startupProfile = require("./App/routes/startupprofileRouter.js");
-require('./App/services/cronjob').cronSchedule
+require("./App/services/cronjob").cronSchedule;
 
 app.use(investorProfile);
 app.use(startupProfile);
@@ -90,59 +90,149 @@ const io = socket(server, {
   },
 });
 
+// const onlineUsers = {};
+
+// io.on("connection", (socket) => {
+//   console.log("Connect socket.io");
+//   console.log("Socket ID:", socket.id);
+
+//   socket.on("add-user", async (userId) => {
+//     console.log(`>>>>>>>>>>> ${userId} added >>>>>>>>>>`);
+
+//     onlineUsers[userId] = socket.id;
+//     await User.findByIdAndUpdate({ _id: userId }, { $set: { isActive: true } });
+//     await Investor.findByIdAndUpdate(
+//       { _id: userId },
+//       { $set: { isActive: true } }
+//     );
+
+//     socket.emit("onlineuser", { userid: userId });
+//   });
+
+//   socket.on("send-msg", async function (data) {
+//     console.log(data);
+
+//     console.log(`>>>>>>>>>>>>1  ${data} >>>>>>>>>>> `);
+//     if (onlineUsers[data.to]) {
+//       const sendId = onlineUsers[data.to];
+//       const userId = onlineUsers[data.from]
+//       console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`);
+//       console.log(`>>>>>>>>>>>>2 ${data} received >>>>>>>>>>>>`);
+//       console.log(`>>>>>>>>>>>>3 ${data.message} >>>>>>>>>>>>`);
+
+//       socket.to(sendId).to(userId).emit("receivedMsg", data.message);
+
+//       const check = await Chat.create({
+//         user_id: data.from,
+//         to_send: data.to,
+//         message: data.message,
+//       });
+//       console.log(`>>>>>>>>>>4  ${check} >>>>>>>>>>>`);
+//     }
+//   });
+
+//   socket.on("disconnect", async (userId) => {
+//     console.log(`>>>>>>>>>>> ${userId} Disconnected >>>>>>>>>>>>`);
+//     await User.findByIdAndUpdate(
+//       { _id: userId },
+//       { $set: { isActive: false } }
+//     );
+//     await Investor.findByIdAndUpdate(
+//       { _id: userId },
+//       { $set: { isActive: false } }
+//     );
+//     socket.emit("Offlineuser", { userid: userId });
+//   });
+// });
+
 const onlineUsers = {};
+const offlineMessages = {};
 
 io.on("connection", (socket) => {
-  console.log("Connect socket.io");
+  console.log("Connected socket.io");
   console.log("Socket ID:", socket.id);
 
-  socket.on("add-user", async (userId) => {
-    console.log(`>>>>>>>>>>> ${userId} added >>>>>>>>>>`);
-
+  socket.on("add-user", (userId) => {
+    console.log(`User ${userId} added to online users`);
     onlineUsers[userId] = socket.id;
-    await User.findByIdAndUpdate({ _id: userId }, { $set: { isActive: true } });
-    await Investor.findByIdAndUpdate(
-      { _id: userId },
-      { $set: { isActive: true } }
-    );
 
-    socket.emit("onlineuser", { userid: userId });
+    if (offlineMessages[userId]) {
+      offlineMessages[userId].forEach((message) => {
+        socket.emit("receivedMsg", message);
+      });
+      delete offlineMessages[userId];
+    }
+
+    Promise.all([
+      User.findByIdAndUpdate(userId, { $set: { isActive: true } }),
+      Investor.findByIdAndUpdate(userId, { $set: { isActive: true } }),
+    ])
+      .then(() => {
+        socket.emit("onlineuser", { userid: userId });
+      })
+      .catch((error) => {
+        console.error("Error updating user status:", error);
+      });
   });
 
-  socket.on("send-msg", async function (data) {
-    console.log(data);
+  socket.on("send-msg", async (data) => {
+    console.log("Message data:", data);
 
-    console.log(`>>>>>>>>>>>>1  ${data} >>>>>>>>>>> `);
     if (onlineUsers[data.to]) {
       const sendId = onlineUsers[data.to];
-      const userId = onlineUsers[data.from]
-      console.log(`>>>>>>>> send id ${sendId} >>>>>>>>>`);
-      console.log(`>>>>>>>>>>>>2 ${data} received >>>>>>>>>>>>`);
-      console.log(`>>>>>>>>>>>>3 ${data.message} >>>>>>>>>>>>`);
-      
+      const userId = onlineUsers[data.from];
+      console.log(`Sending message to ${data.to} from ${data.from}`);
 
-      socket.to(sendId).to(userId).emit("receivedMsg", data.message);
+      io.to(sendId).to(userId).emit("receivedMsg", data.message);
 
+      // Create a chat record
+    } else {
+      if (!offlineMessages[data.to]) {
+        offlineMessages[data.to] = [];
+      }
+      offlineMessages[data.to].push(data.message);
 
-      const check = await Chat.create({
+      console.log(
+        `User ${data.to} is offline. Message is stored for later delivery.`
+      );
+    }
+    try {
+      const chat = await Chat.create({
         user_id: data.from,
         to_send: data.to,
         message: data.message,
       });
-      console.log(`>>>>>>>>>>4  ${check} >>>>>>>>>>>`);
+      console.log("Chat record created:", chat);
+    } catch (error) {
+      console.error("Error creating chat record:", error);
     }
   });
 
-  socket.on("disconnect", async (userId) => {
-    console.log(`>>>>>>>>>>> ${userId} Disconnected >>>>>>>>>>>>`);
-    await User.findByIdAndUpdate(
-      { _id: userId },
-      { $set: { isActive: false } }
+  socket.on("disconnect", () => {
+    // Find the disconnected user based on socket.id
+    const disconnectedUserId = Object.keys(onlineUsers).find(
+      (userId) => onlineUsers[userId] === socket.id
     );
-    await Investor.findByIdAndUpdate(
-      { _id: userId },
-      { $set: { isActive: false } }
-    );
-    socket.emit("Offlineuser", { userid: userId });
+
+    if (disconnectedUserId) {
+      console.log(`User ${disconnectedUserId} Disconnected`);
+
+      // Update user's isActive status using promises
+      Promise.all([
+        User.findByIdAndUpdate(disconnectedUserId, {
+          $set: { isActive: false },
+        }),
+        Investor.findByIdAndUpdate(disconnectedUserId, {
+          $set: { isActive: false },
+        }),
+      ])
+        .then(() => {
+          socket.emit("Offlineuser", { userid: disconnectedUserId });
+          delete onlineUsers[disconnectedUserId];
+        })
+        .catch((error) => {
+          console.error("Error updating user status:", error);
+        });
+    }
   });
 });
