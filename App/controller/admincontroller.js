@@ -1,7 +1,7 @@
 let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
 const SendOtp = require("../middlewares/sendOtp");
-let Admin = require("../models/adminModel");
+let adminModel = require("../models/adminModel");
 const Investor = require("../models/userInvestorModel");
 const Startup = require("../models/userStartupModel");
 const moment = require("moment");
@@ -303,7 +303,7 @@ exports.manageUsers = async (req, res) => {
     const currentDateTime = moment();
     const swipeResetDuration = moment.duration(24, "hours");
 
-    const swipe = await Admin.find().select("swipeCount");
+    const swipe = await adminModel.find().select("swipeCount");
     const result = [...startupData, ...investorData];
 
     result.map((obj) => {
@@ -380,7 +380,7 @@ exports.singleUser = async (req, res) => {
         lastCountReset: 1,
       })
       .lean();
-    const swipe = await Admin.find().select("swipeCount");
+    const swipe = await adminModel.find().select("swipeCount");
 
     let result = startupData ? startupData : investorData;
 
