@@ -1,9 +1,10 @@
 let bcrypt = require("bcrypt");
 let jwt = require("jsonwebtoken");
 const SendOtp = require("../middlewares/sendOtp");
-let adminModel = require("../models/adminModel");
+let Admin = require("../models/adminModel");
 const Investor = require("../models/userInvestorModel");
 const Startup = require("../models/userStartupModel");
+const moment = require("moment");
 
 exports.adminSignUp = async (req, res, next) => {
   try {
@@ -259,20 +260,88 @@ exports.verifyotp = async (req, res) => {
 
 exports.manageUsers = async (req, res) => {
   try {
-    console.log(`>>>>>>>>>> inside user manager api >>>>>>>>`);
-    const startupData = await Startup.find();
-    const investorData = await Investor.find();
-    const final = [...startupData, ...investorData];
+    const startupData = await Startup.aggregate([
+      {
+        $project: {
+          _id: 1,
+          profile_pic: 1,
+          startupName: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          location: 1,
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          bio: 1,
+          count: 1,
+          lastCountReset: 1,
+        },
+      },
+    ]);
+
+    const investorData = await Investor.aggregate([
+      {
+        $project: {
+          _id: 1,
+          investorName: 1,
+          profile_pic: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          location: 1,
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          bio: 1,
+          count: 1,
+          lastCountReset: 1,
+        },
+      },
+    ]);
+
+    const currentDateTime = moment();
+    const swipeResetDuration = moment.duration(24, "hours");
+
+    const swipe = await Admin.find().select("swipeCount");
+    const result = [...startupData, ...investorData];
+
+    result.map((obj) => {
+      obj.totalSwipe = swipe[0].swipeCount;
+      obj.swipeLeft = swipe[0].swipeCount - obj.count;
+      let resetTimeLeft = "0:0 hr";
+
+      if (obj.lastCountReset) {
+        const lastCountResetTimestamp = obj.lastCountReset;
+        const lastCountResetDate = moment(lastCountResetTimestamp);
+
+        const timeElapsed = moment.duration(
+          currentDateTime.diff(lastCountResetDate)
+        );
+        let timeLeft = swipeResetDuration.subtract(timeElapsed);
+
+        if (timeLeft.asMinutes() < 0) {
+          timeLeft = moment.duration(0);
+        } else {
+          const hours = Math.floor(timeLeft.asHours());
+          const minutes = timeLeft.minutes();
+          resetTimeLeft = `${hours}:${minutes} hr`;
+        }
+      }
+      obj.timeLeft = resetTimeLeft;
+    });
+
     res.status(201).json({
       status: true,
-      message: "user fetched successfully",
-      data: final,
+      message: "User fetched successfully",
+      data: result,
     });
   } catch (error) {
     return res.status(500).send({
       success: false,
       status: "500",
-      message: "Something Went Wrongs",
+      message: "Something went wrong",
+      error: error.stack,
     });
   }
 };

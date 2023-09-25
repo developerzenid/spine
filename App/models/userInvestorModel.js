@@ -37,8 +37,9 @@ const investorSchema = new mongoose.Schema(
     },
     mobileNotify: { type: Boolean, default: true },
     address: { type: String },
-    count: { type: Number , default: 0},
-    lastCountReset: { type: Date, default: null },
+    count: { type: Number, default: 0 },
+    lastCountReset: { type: Date, default: Date.now },
+    isActive: { type: Boolean, default: false },
   },
   {
     timestamps: true,
