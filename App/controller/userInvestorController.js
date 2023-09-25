@@ -773,7 +773,7 @@ module.exports.fetchMyProfile = async (req, res, next) => {
   }
 };
 
-module.exports.fetchInvesterUser = async (req, res, next) => {
+module.exports.fetchStartupUser = async (req, res, next) => {
   const { stStage, location, chooseIndustry, ticketSize } = req.query;
 
   // Prepare a match object for filtering
@@ -820,7 +820,7 @@ module.exports.fetchInvesterUser = async (req, res, next) => {
   }
 };
 
-module.exports.fetchStartupUser = async (req, res, next) => {
+module.exports.fetchInvesterUser = async (req, res, next) => {
   const { stStage, location, chooseIndustry, ticketSize } = req.query;
   const match = {};
 
@@ -850,14 +850,12 @@ module.exports.fetchStartupUser = async (req, res, next) => {
     const recipientIds = sentNotifications.map(
       (notification) => notification.to_send
     );
-    console.log("receipt ids that contain user id >>>>>> ", recipientIds);
 
     const usersNotInNotification = await UserModel.aggregate([
       { $match: { _id: { $nin: recipientIds } } },
       { $match: match },
       { $sample: { size: 100000000 } },
     ]);
-    console.log("user not notification", usersNotInNotification);
 
     if (usersNotInNotification.length > 0) {
       return res.status(200).json({
@@ -1227,91 +1225,3 @@ module.exports.rejectedRequest = async (req, res, next) => {
 //     });
 //   }
 // };
-
-exports.linkdlnSingup = async (req, res) => {
-  try {
-    const { social_id, email, password } = req.body;
-    const check = await UserModel.findOne({
-      $or: [{ social_id: social_id }, { email: email }],
-    });
-    const checkInvestor = await investorModel.findOne({
-      $or: [{ social_id: social_id }, { email: email }],
-    });
-    if (check || checkInvestor) {
-      return res.status(200).send({
-        success: false,
-        Status: "401",
-        message: "You are already registered",
-      });
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
-    const data = new investorModel({
-      email: email,
-      social_id: social_id,
-      password: hashPassword,
-    });
-    const user = await data.save();
-    const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "5d",
-    });
-    res.status(200).send({
-      success: true,
-      status: "200",
-      message: "Registration Successfully",
-      user,
-      token,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};
-
-exports.linkdlnLogin = async (req, res) => {
-  try {
-    const { social_id, email, password } = req.body;
-    console.log(req.body);
-    const checkUser = await investorModel.findOne({
-      $and: [{ email: email }, { social_id: social_id }],
-    });
-    if (!checkUser) {
-      return res.status(401).send({
-        success: false,
-        status: "401",
-        message: "Social_id and email is incorrect",
-      });
-    }
-    const compare = await bcrypt.compare(password, checkUser.password);
-    if (!compare) {
-      return res.status(401).send({
-        success: false,
-        status: "401",
-        message: "Password incorrect",
-      });
-    }
-    const token = jwt.sign(
-      { userID: checkUser._id },
-      process.env.JWT_SECRET_KEY,
-      {
-        expiresIn: "5d",
-      }
-    );
-    res.status(200).send({
-      success: true,
-      status: "200",
-      message: "Login succesfully",
-      checkUser,
-      token,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};

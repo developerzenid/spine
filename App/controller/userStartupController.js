@@ -14,8 +14,6 @@ var FCM = require("fcm-node");
 // var serverKey = 'AAAA8LU-rPM:APA91bHIYE9UyPl0k2waaRUfQUZQ-ci0x66hLyPT2X1dv67spaDtc_VHjX7zNtXsDUns9Qvh4IDqGZTrlCiVIexyH2lrVJsdbNEoW_A1jW4yOX3lCtMq6n6BKIRhhwMtKhjV6kiIW7Kk'; //put your server key here
 var serverKey =
   "AAAAT8kC-LU:APA91bGXgmVsViWmoAHCc6woyrZtLeQqjx_EBWNMfot_VogJDsusY0HpDTcjVNj1o7CrNvSUbXznuU-UNEgncufmSGzdVIRX9GW04b5PnT17xYsuyzuJD_Irz6mlSrgz_cfsRey4aVGY";
-//last "AAAA6NG_HkA:APA91bHqg8o_zY_dTOwMY7TnRvnFmRfxFsnyMRYusap93ykcunsImWKwyPzhthzwroCkT0v4EQbztjThkdBFof_XIfRvcJZN_ejnPqHNOl93lunjvAMnCGt9wRoIOisUh17Xz1mtGLsV";
-// var serverKey="AAAAykjCpRU:APA91bGWtlwydzaW13DwPJm7vAjSLw1y58oXK0dySLKKZvWAivFHJMvzOOx6c9Zr1otGirkS0MvwYd0iNmmbEE-6iQY_qXGxaDeO2BjlqdZ3Ums6jAuAfQjB5lemh9ly2TpcNVgNumT7"
 var fcm = new FCM(serverKey);
 
 const notification = require("../models/notificationModel.js");
@@ -880,22 +878,6 @@ module.exports.fetchMyProfile = async (req, res, next) => {
   }
 };
 
-// module.exports.filterDataByMyId = (myId, data) => {
-//   let newData = data;
-
-//   const id = newData[0]._id;
-//   console.log("newData", newData);
-
-//   const myObjectId = new ObjectId(myId);
-//   console.log("myobjid", myObjectId);
-//   console.log("dataId", id);
-
-//   return newData.filter(
-//     (item) =>
-//       !item.intrestedIn.find((id) => id.toString() === myObjectId.toString())
-//   );
-// };
-
 module.exports.fetchInvestorupUser = async (req, res, next) => {
   try {
     const user_id = req.user._id;
@@ -983,7 +965,6 @@ module.exports.fetchInvestorupUser = async (req, res, next) => {
 module.exports.fetchAllInvesterUser = async (req, res, next) => {
   const { stStage, location, chooseIndustry, ticketSize } = req.query;
 
-  // Prepare a match object for filtering
   const match = {};
 
   if (stStage) {
@@ -1181,11 +1162,6 @@ module.exports.sentNotification = async (req, res, next) => {
         body: `${loginUser.startupName} is intersted in connecting with you`,
       },
     };
-
-    // const modify = await UserModel.findByIdAndUpdate(loginUser._id, {
-    //   $inc: { count: 1 }, // Increment the count field by 1
-    // });
-
     console.log("fcm", fcm);
     if (User.mobileNotify) {
       fcm.send(message, function (err, response) {
@@ -1729,91 +1705,3 @@ exports.countSet = async (req, res) => {
   }
 };
 
-exports.linkdlnSingup = async (req, res) => {
-  try {
-    const { social_id, email, password } = req.body;
-    const check = await UserModel.findOne({
-      $or: [{ social_id: social_id }, { email: email }],
-    });
-    const checkInvestor = await investorModel.findOne({
-      $or: [{ social_id: social_id }, { email: email }],
-    });
-    if (check || checkInvestor) {
-      return res.status(200).send({
-        success: false,
-        Status: "401",
-        message: "You are already registered",
-      });
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
-    const data = new UserModel({
-      email: email,
-      social_id: social_id,
-      password: hashPassword,
-    });
-    const user = await data.save();
-    const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "5d",
-    });
-    res.status(200).send({
-      success: true,
-      status: "200",
-      message: "Registration Successfully",
-      user,
-      token,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};
-
-exports.linkdlnLogin = async (req, res) => {
-  try {
-    const { social_id, email, password } = req.body;
-    console.log(req.body);
-    const checkUser = await UserModel.findOne({
-      $and: [{ email: email }, { social_id: social_id }],
-    });
-    console.log(checkUser);
-    if (!checkUser) {
-      return res.status(401).send({
-        success: false,
-        status: "401",
-        message: "Social_id and Email is incorrect",
-      });
-    }
-    const compare = await bcrypt.compare(password, checkUser.password);
-    if (!compare) {
-      return res.status(401).send({
-        success: false,
-        status: "401",
-        message: "Password incorrect",
-      });
-    }
-    const token = jwt.sign(
-      { userID: checkUser._id },
-      process.env.JWT_SECRET_KEY,
-      {
-        expiresIn: "5d",
-      }
-    );
-    res.status(200).send({
-      success: true,
-      status: "200",
-      message: "Login succesfully",
-      checkUser,
-      token,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};

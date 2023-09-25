@@ -149,9 +149,5 @@ module.exports = (app) => {
 
   router.patch("/swipeCountPush", checkUserAuth, userControllers.countSet);
 
-  router.post("/linkdlnSignup", userControllers.linkdlnSingup);
-
-  router.post("/linkdlnLogin", userControllers.linkdlnLogin);
-
   app.use("/", router);
 };
