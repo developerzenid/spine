@@ -1034,6 +1034,56 @@ module.exports.sentNotification = async (req, res) => {
 //fetch notification
 //****************************************************************************************************************************/
 
+// module.exports.fetchNotification = async (req, res, next) => {
+//   try {
+//     const user_id = req.user._id;
+//     const fetchNotification = await investorNotification
+//       .find({ to_send: user_id })
+//       .populate("user_id")
+//       .sort({ createdAt: -1 });
+
+//     fetchNotification.forEach((notification) => {
+//       const createdAt = moment(notification.createdAt);
+    
+//       console.log("Notification createdAt:", createdAt.format());
+    
+//       if (createdAt.isSame(moment(), "day")) {
+//         notification.date = "today";
+//         console.log("Date is today",notification.date);
+//       } else if (createdAt.isSame(moment().subtract(1, "day"), "day")) {
+//         console.log("Date is yesterday");
+//         notification.date = "yesterday";
+//       } else if (createdAt.isBetween(moment().subtract(7, "days"), moment())) {
+//         console.log("Date is within the last week");
+//         notification.date = "week";
+//       } else if (createdAt.isBetween(moment().subtract(1, "month"), moment())) {
+//         console.log("Date is within the last month");
+//         notification.date = "month";
+//       }
+//     });
+    
+
+//     console.log(">>>>>>>", fetchNotification);
+
+//     if (fetchNotification.length === 0) {
+//       return res.status(409).json({ message: "No data found", status: false });
+//     }
+//     return res.status(200).json({
+//       status: true,
+//       message: "Notification fetch successfully",
+//       response: fetchNotification,
+//     });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
+
+
+
 module.exports.fetchNotification = async (req, res, next) => {
   try {
     const user_id = req.user._id;
@@ -1042,33 +1092,32 @@ module.exports.fetchNotification = async (req, res, next) => {
       .populate("user_id")
       .sort({ createdAt: -1 });
 
-      const today = moment();
-      const yesterday = moment().subtract(1, "day");
-      const oneWeekAgo = moment().subtract(7, "days");
-      const oneMonthAgo = moment().subtract(1, "month");
-  
-      fetchNotification.forEach((notification) => {
-        const createdAt = moment(notification.createdAt);
-  
-        if (createdAt.isSame(today, "day")) {
-          notification.day = "today";
-        } else if (createdAt.isSame(yesterday, "day")) {
-          notification.day = "yesterday";
-        } else if (createdAt.isBetween(oneWeekAgo, today)) {
-          notification.day = "week";
-        } else if (createdAt.isBetween(oneMonthAgo, today)) {
-          notification.day = "month";
-        }
-      });
-  
-      if (fetchNotification.length === 0) {
-        return res.status(409).json({ message: "No data found", status: false });
+    if (fetchNotification.length === 0) {
+      return res.status(409).json({ message: "No data found", status: false });
+    }
+
+    const transformedNotifications = fetchNotification.map((notification) => {
+      const createdAt = moment(notification.createdAt);
+      let date = "";
+
+      if (createdAt.isSame(moment(), "day")) {
+        date = "today";
+      } else if (createdAt.isSame(moment().subtract(1, "day"), "day")) {
+        date = "yesterday";
+      } else if (createdAt.isBetween(moment().subtract(7, "days"), moment())) {
+        date = "week";
+      } else if (createdAt.isBetween(moment().subtract(1, "month"), moment())) {
+        date = "month";
       }
-      return res.status(200).json({
-        status: true,
-        message: "Notification fetch successfully",
-        response: fetchNotification
-      });
+
+      return { ...notification.toObject(), date }; // Add date property
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "Notification fetch successfully",
+      response: transformedNotifications,
+    });
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1077,6 +1126,7 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
+
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {

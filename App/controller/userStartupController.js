@@ -1196,6 +1196,7 @@ module.exports.sentNotification = async (req, res, next) => {
 //fetch notification
 //****************************************************************************************************************************/
 
+
 // module.exports.fetchNotification = async (req, res, next) => {
 //   try {
 //     const user_id = req.user._id;
@@ -1211,41 +1212,27 @@ module.exports.sentNotification = async (req, res, next) => {
 //     const oneWeekAgo = moment().subtract(7, "days");
 //     const oneMonthAgo = moment().subtract(1, "month");
 
-//     const categorizedNotifications = {
-//       today: [],
-//       yesterday: [],
-//       week: [],
-//       month: [],
-//     };
-
 //     fetchNotification.forEach((notification) => {
 //       const createdAt = moment(notification.createdAt);
 
 //       if (createdAt.isSame(today, "day")) {
-//         categorizedNotifications.today.push(notification);
+//         notification.date = "today";
 //       } else if (createdAt.isSame(yesterday, "day")) {
-//         categorizedNotifications.yesterday.push(notification);
+//         notification.date = "yesterday";
 //       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-//         categorizedNotifications.week.push(notification);
+//         notification.date = "week";
 //       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-//         categorizedNotifications.month.push(notification);
+//         notification.date = "month";
 //       }
 //     });
 
-//     if (
-//       [
-//         ...categorizedNotifications.today,
-//         ...categorizedNotifications.yesterday,
-//         ...categorizedNotifications.week,
-//         ...categorizedNotifications.month,
-//       ].length === 0
-//     ) {
+//     if (fetchNotification.length === 0) {
 //       return res.status(409).json({ message: "No data found", status: false });
 //     }
 //     return res.status(200).json({
 //       status: true,
-//       message: "Notification sent successfully",
-//       reponse: categorizedNotifications
+//       message: "Notification fetch successfully",
+//       response: fetchNotification,
 //     });
 //   } catch (err) {
 //     return res.status(401).json({
@@ -1264,34 +1251,31 @@ module.exports.fetchNotification = async (req, res, next) => {
       .populate("user_id")
       .sort({ createdAt: -1 });
 
-    console.log(fetchNotification);
-
-    const today = moment();
-    const yesterday = moment().subtract(1, "day");
-    const oneWeekAgo = moment().subtract(7, "days");
-    const oneMonthAgo = moment().subtract(1, "month");
-
-    fetchNotification.forEach((notification) => {
-      const createdAt = moment(notification.createdAt);
-
-      if (createdAt.isSame(today, "day")) {
-        notification.day = "today";
-      } else if (createdAt.isSame(yesterday, "day")) {
-        notification.day = "yesterday";
-      } else if (createdAt.isBetween(oneWeekAgo, today)) {
-        notification.day = "week";
-      } else if (createdAt.isBetween(oneMonthAgo, today)) {
-        notification.day = "month";
-      }
-    });
-
     if (fetchNotification.length === 0) {
       return res.status(409).json({ message: "No data found", status: false });
     }
+
+    const transformedNotifications = fetchNotification.map((notification) => {
+      const createdAt = moment(notification.createdAt);
+      let date = "";
+
+      if (createdAt.isSame(moment(), "day")) {
+        date = "today";
+      } else if (createdAt.isSame(moment().subtract(1, "day"), "day")) {
+        date = "yesterday";
+      } else if (createdAt.isBetween(moment().subtract(7, "days"), moment())) {
+        date = "week";
+      } else if (createdAt.isBetween(moment().subtract(1, "month"), moment())) {
+        date = "month";
+      }
+
+      return { ...notification.toObject(), date }; // Add date property
+    });
+
     return res.status(200).json({
       status: true,
       message: "Notification fetch successfully",
-      response: fetchNotification,
+      response: transformedNotifications,
     });
   } catch (err) {
     return res.status(401).json({
@@ -1301,6 +1285,7 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
+
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
