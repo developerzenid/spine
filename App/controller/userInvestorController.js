@@ -1051,13 +1051,13 @@ module.exports.fetchNotification = async (req, res, next) => {
         const createdAt = moment(notification.createdAt);
   
         if (createdAt.isSame(today, "day")) {
-          notification.status = "today";
+          notification.day = "today";
         } else if (createdAt.isSame(yesterday, "day")) {
-          notification.status = "yesterday";
+          notification.day = "yesterday";
         } else if (createdAt.isBetween(oneWeekAgo, today)) {
-          notification.status = "week";
+          notification.day = "week";
         } else if (createdAt.isBetween(oneMonthAgo, today)) {
-          notification.status = "month";
+          notification.day = "month";
         }
       });
   
