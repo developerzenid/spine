@@ -273,7 +273,7 @@ exports.manageUsers = async (req, res) => {
           date: {
             $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
           },
-          bio: 1,
+          description: 1,
           count: 1,
           lastCountReset: 1,
         },
@@ -359,7 +359,7 @@ exports.singleUser = async (req, res) => {
         isActive: 1,
         location: 1,
         createdAt: 1,
-        bio: 1,
+        description: 1,
         count: 1,
         lastCountReset: 1,
       })
