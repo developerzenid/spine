@@ -1194,54 +1194,7 @@ module.exports.sentNotification = async (req, res, next) => {
 
 //*****************************************************************************************************************************/
 //fetch notification
-//****************************************************************************************************************************/
-
-
-// module.exports.fetchNotification = async (req, res, next) => {
-//   try {
-//     const user_id = req.user._id;
-//     const fetchNotification = await notification
-//       .find({ to_send: user_id })
-//       .populate("user_id")
-//       .sort({ createdAt: -1 });
-
-//     console.log(fetchNotification);
-
-//     const today = moment();
-//     const yesterday = moment().subtract(1, "day");
-//     const oneWeekAgo = moment().subtract(7, "days");
-//     const oneMonthAgo = moment().subtract(1, "month");
-
-//     fetchNotification.forEach((notification) => {
-//       const createdAt = moment(notification.createdAt);
-
-//       if (createdAt.isSame(today, "day")) {
-//         notification.date = "today";
-//       } else if (createdAt.isSame(yesterday, "day")) {
-//         notification.date = "yesterday";
-//       } else if (createdAt.isBetween(oneWeekAgo, today)) {
-//         notification.date = "week";
-//       } else if (createdAt.isBetween(oneMonthAgo, today)) {
-//         notification.date = "month";
-//       }
-//     });
-
-//     if (fetchNotification.length === 0) {
-//       return res.status(409).json({ message: "No data found", status: false });
-//     }
-//     return res.status(200).json({
-//       status: true,
-//       message: "Notification fetch successfully",
-//       response: fetchNotification,
-//     });
-//   } catch (err) {
-//     return res.status(401).json({
-//       status: false,
-//       message: err.message,
-//       stack: err.stack,
-//     });
-//   }
-// };
+//****************************************************************************************************************************
 
 module.exports.fetchNotification = async (req, res, next) => {
   try {
@@ -1285,7 +1238,6 @@ module.exports.fetchNotification = async (req, res, next) => {
     });
   }
 };
-
 
 module.exports.acceptRequest = async (req, res, next) => {
   try {
@@ -1569,8 +1521,8 @@ exports.fetchChat = async (req, res) => {
 };
 
 function formatTime(date) {
-  const options = { hour: "2-digit", minute: "2-digit", hour12: false };
-  return date.toLocaleString("en-US", options);
+  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+  return new Date(date).toLocaleTimeString(undefined, options);
 }
 
 exports.listChatUsers = async (req, res) => {

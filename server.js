@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
       Investor.findByIdAndUpdate(userId, { $set: { isActive: true } }),
     ])
       .then(() => {
-        socket.emit("onlineuser", { userid: userId });
+        socket.broadcast.emit("onlineuser", { userid: userId });
       })
       .catch((error) => {
         console.error("Error updating user status:", error);
