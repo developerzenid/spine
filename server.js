@@ -190,6 +190,7 @@ io.on("connection", (socket) => {
       if (!offlineMessages[data.to]) {
         offlineMessages[data.to] = [];
       }
+      io.to(data.from).emit("receivedMsg", data.message);
       offlineMessages[data.to].push(data.message);
 
       console.log(
