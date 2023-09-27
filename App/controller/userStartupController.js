@@ -1461,6 +1461,18 @@ module.exports.acceptUser = async (req, res) => {
   }
 };
 
+function formatTime(date) {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const amOrPm = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
+
+  const formattedTime = `${formattedHours}:${minutes
+    .toString()
+    .padStart(2, "0")} ${amOrPm}`;
+  return formattedTime;
+}
+
 exports.fetchChat = async (req, res) => {
   try {
     console.log(
@@ -1519,16 +1531,6 @@ exports.fetchChat = async (req, res) => {
     });
   }
 };
-
-function formatTime(date) {
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const amOrPm = hours >= 12 ? 'PM' : 'AM';
-  const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
-
-  const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${amOrPm}`;
-  return formattedTime;
-}
 
 exports.listChatUsers = async (req, res) => {
   try {
@@ -1651,7 +1653,6 @@ exports.homeChat = async (req, res) => {
     let user;
     const findStartup = await UserModel.findById(req.user_id);
     const findInvestor = await investorModel.findById(req.user._id);
-
   } catch (err) {
     return res.status(500).json({
       status: false,
