@@ -6,6 +6,7 @@ const chatSchema = new Schema(
     user_id: { type: String },
     to_send: { type: String },
     message: { type: String },
+    time: { type: String },
   },
   {
     timestamps: true,

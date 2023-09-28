@@ -202,6 +202,7 @@ io.on("connection", (socket) => {
         user_id: data.from,
         to_send: data.to,
         message: data.message,
+        time: data.time,
       });
       console.log("Chat record created:", chat);
     } catch (error) {

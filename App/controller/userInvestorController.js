@@ -1044,9 +1044,9 @@ module.exports.sentNotification = async (req, res) => {
 
 //     fetchNotification.forEach((notification) => {
 //       const createdAt = moment(notification.createdAt);
-    
+
 //       console.log("Notification createdAt:", createdAt.format());
-    
+
 //       if (createdAt.isSame(moment(), "day")) {
 //         notification.date = "today";
 //         console.log("Date is today",notification.date);
@@ -1061,7 +1061,6 @@ module.exports.sentNotification = async (req, res) => {
 //         notification.date = "month";
 //       }
 //     });
-    
 
 //     console.log(">>>>>>>", fetchNotification);
 
@@ -1081,8 +1080,6 @@ module.exports.sentNotification = async (req, res) => {
 //     });
 //   }
 // };
-
-
 
 module.exports.fetchNotification = async (req, res, next) => {
   try {
@@ -1127,7 +1124,6 @@ module.exports.fetchNotification = async (req, res, next) => {
   }
 };
 
-
 module.exports.acceptRequest = async (req, res, next) => {
   try {
     console.log(req.body);
@@ -1151,6 +1147,26 @@ module.exports.acceptRequest = async (req, res, next) => {
         },
       }
     );
+
+    // //used to insert user in user model interseted
+    // loginUser.intrestedIn.includes(Notificationcreate.to_send)
+    //   ? console.log(``)
+    //   : await UserModel.findByIdAndUpdate(
+    //       { _id: req.user._id },
+    //       { $push: { intrestedIn: startUpRequestAccept.to_send } }
+    //     );
+
+    // //we also need to insert that particular user in invested also-->
+    // User.intrestedIn.includes(startUpRequestAccept.to_send)
+    //   ? console.log(``)
+    //   : await investorModel.findByIdAndUpdate(
+    //       {
+    //         _id: Notificationcreate.to_send,
+    //       },
+    //       { $push: { intrestedIn: req.user._id } }
+    //     );
+
+
     var message = {
       to: User.mobile_token,
       notification: {

@@ -149,5 +149,7 @@ module.exports = (app) => {
 
   router.patch("/swipeCountPush", checkUserAuth, userControllers.countSet);
 
+  router.get("/getHomeChat", checkUserAuth, userControllers.homeChat)
+
   app.use("/", router);
 };

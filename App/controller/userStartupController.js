@@ -1265,7 +1265,7 @@ module.exports.acceptRequest = async (req, res, next) => {
     // //used to insert user in user model interseted
     // loginUser.intrestedIn.includes(Notificationcreate.to_send)
     //   ? console.log(``)
-    //   :  await UserModel.findByIdAndUpdate(
+    //   : await UserModel.findByIdAndUpdate(
     //       { _id: req.user._id },
     //       { $push: { intrestedIn: startUpRequestAccept.to_send } }
     //     );
@@ -1273,9 +1273,12 @@ module.exports.acceptRequest = async (req, res, next) => {
     // //we also need to insert that particular user in invested also-->
     // User.intrestedIn.includes(startUpRequestAccept.to_send)
     //   ? console.log(``)
-    //   : await investorModel.findByIdAndUpdate({
-    //       _id: Notificationcreate.to_send,
-    //     },{$push:{intrestedIn:req.user._id}});
+    //   : await investorModel.findByIdAndUpdate(
+    //       {
+    //         _id: Notificationcreate.to_send,
+    //       },
+    //       { $push: { intrestedIn: req.user._id } }
+    //     );
 
     var message = {
       to: User.mobile_token,
@@ -1461,17 +1464,17 @@ module.exports.acceptUser = async (req, res) => {
   }
 };
 
-function formatTime(date) {
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const amOrPm = hours >= 12 ? "PM" : "AM";
-  const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
+// function formatTime(date) {
+//   const hours = date.getHours();
+//   const minutes = date.getMinutes();
+//   const amOrPm = hours >= 12 ? "PM" : "AM";
+//   const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
 
-  const formattedTime = `${formattedHours}:${minutes
-    .toString()
-    .padStart(2, "0")} ${amOrPm}`;
-  return formattedTime;
-}
+//   const formattedTime = `${formattedHours}:${minutes
+//     .toString()
+//     .padStart(2, "0")} ${amOrPm}`;
+//   return formattedTime;
+// }
 
 exports.fetchChat = async (req, res) => {
   try {
@@ -1497,13 +1500,13 @@ exports.fetchChat = async (req, res) => {
     const sendMessages = send.map((message) => ({
       ...message.toObject(),
       status: "sender",
-      time: formatTime(message.createdAt),
+      time: message.time,
     }));
 
     const receiveMessages = recieve.map((message) => ({
       ...message.toObject(),
       status: "receiver",
-      time: formatTime(message.createdAt),
+      time: message.time,
     }));
 
     const result = [...sendMessages, ...receiveMessages].sort(
@@ -1649,10 +1652,34 @@ exports.countSet = async (req, res) => {
 
 exports.homeChat = async (req, res) => {
   try {
-    console.log(`>>>>>>>>>>>>>>>>>>>${req.user_id}>>>>>>>>>>>`);
+    console.log(`>>>>>>>>>>>>>>>>>>>${req.user._id}>>>>>>>>>>>`);
     let user;
-    const findStartup = await UserModel.findById(req.user_id);
+    const findStartup = await UserModel.findById(req.user._id);
     const findInvestor = await investorModel.findById(req.user._id);
+    findStartup ? (user = findStartup) : (user = findInvestor);
+
+    if (!user) {
+      return res.status(409).json({ message: "No user found", status: false });
+    }
+    const fetchChat = await Chat.find({ user_id: user._id })
+      .select("to_send message createdAt")
+      .sort({
+        createdAt: -1,
+      });
+    const latestChatByToSend = {};
+
+    for (const chat of fetchChat) {
+      if (!(chat.to_send in latestChatByToSend)) {
+        latestChatByToSend[chat.to_send] = chat;
+      }
+    }
+    const latestChats = Object.values(latestChatByToSend);
+    if (latestChats.length < 0) {
+      return res.status(409).json({ message: "No data found", status: false });
+    }
+    res
+      .status(200)
+      .json({ message: "latest chats", status: true, messages: latestChats });
   } catch (err) {
     return res.status(500).json({
       status: false,
