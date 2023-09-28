@@ -1535,47 +1535,111 @@ exports.fetchChat = async (req, res) => {
   }
 };
 
+// exports.listChatUsers = async (req, res) => {
+//   try {
+//     console.log(
+//       `>>>>>>>>>>>>>> list chat users for ${req.user._id}>>>>>>>>>>>>>`
+//     );
+//     const data = await Chat.find({ user_id: req.user._id }).sort({
+//       createdAt: -1,
+//     });
+
+//     let chatUser = [];
+//     let listUsers = [];
+//     data.forEach((user) => {
+//       if (!chatUser.includes(user.to_send)) {
+//         if (user.to_send !== "null") {
+//           chatUser.push(user.to_send);
+//         }
+//       }
+//     });
+
+
+
+//     for (const id of chatUser) {
+//       console.log("ID ", id);
+//       const startupData = await UserModel.find({
+//         _id: mongoose.Types.ObjectId(id),
+//       });
+//       const investorData = await investorModel.find({
+//         _id: mongoose.Types.ObjectId(id),
+//       });
+
+//       if (startupData.length !== 0) {
+//         console.log(">>>>.. startup >>>>>>>");
+//         listUsers.push(...startupData);
+//       }
+//       if (investorData.length !== 0) {
+//         console.log(">>>>>>>>>. investor >>>>");
+//         listUsers.push(...investorData);
+//       }
+//     }
+
+//     res
+//       .status(201)
+//       .json({ status: true, message: "user data fetched", data: listUsers });
+//   } catch (err) {
+//     return res.status(401).json({
+//       status: false,
+//       message: err.message,
+//       stack: err.stack,
+//     });
+//   }
+// };
+
 exports.listChatUsers = async (req, res) => {
   try {
     console.log(
-      `>>>>>>>>>>>>>> list chat users for ${req.user._id}>>>>>>>>>>>>>`
+      `>>>>>>>>>>>>>> list chat users for ${req.user._id} >>>>>>>>>>>>>>`
     );
+
     const data = await Chat.find({ user_id: req.user._id }).sort({
       createdAt: -1,
     });
 
     let chatUser = [];
     let listUsers = [];
-    data.forEach((user) => {
-      if (!chatUser.includes(user.to_send)) {
-        if (user.to_send !== "null") {
-          chatUser.push(user.to_send);
+
+    for (const user of data) {
+      if (!chatUser.includes(user.to_send) && user.to_send !== "null") {
+        chatUser.push(user.to_send);
+
+        // Filter messages for the current user and sort them by createdAt in descending order
+        const userMessages = data
+          .filter((message) => message.to_send === user.to_send)
+          .sort((a, b) => b.createdAt - a.createdAt);
+
+        // Get the latest message for the user
+        const latestMessage = userMessages.length > 0 ? userMessages[0].message : "";
+
+        const startupData = await UserModel.find({
+          _id: mongoose.Types.ObjectId(user.to_send),
+        });
+
+        const investorData = await investorModel.find({
+          _id: mongoose.Types.ObjectId(user.to_send),
+        });
+
+        if (startupData.length !== 0) {
+          console.log(">>>>.. startup >>>>>>>");
+          const userWithMessage = {
+            ...startupData[0].toObject(),
+            message: latestMessage,
+          };
+          listUsers.push(userWithMessage);
         }
-      }
-    });
-
-    for (const id of chatUser) {
-      console.log("ID ", id);
-      const startupData = await UserModel.find({
-        _id: mongoose.Types.ObjectId(id),
-      });
-      const investorData = await investorModel.find({
-        _id: mongoose.Types.ObjectId(id),
-      });
-
-      if (startupData.length !== 0) {
-        console.log(">>>>.. startup >>>>>>>");
-        listUsers.push(...startupData);
-      }
-      if (investorData.length !== 0) {
-        console.log(">>>>>>>>>. investor >>>>");
-        listUsers.push(...investorData);
+        if (investorData.length !== 0) {
+          console.log(">>>>>>>>>. investor >>>>");
+          const userWithMessage = {
+            ...investorData[0].toObject(),
+            message: latestMessage,
+          };
+          listUsers.push(userWithMessage);
+        }
       }
     }
 
-    res
-      .status(201)
-      .json({ status: true, message: "user data fetched", data: listUsers });
+    res.status(201).json({ status: true, message: "user data fetched", data: listUsers });
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1650,41 +1714,3 @@ exports.countSet = async (req, res) => {
   }
 };
 
-exports.homeChat = async (req, res) => {
-  try {
-    console.log(`>>>>>>>>>>>>>>>>>>>${req.user._id}>>>>>>>>>>>`);
-    let user;
-    const findStartup = await UserModel.findById(req.user._id);
-    const findInvestor = await investorModel.findById(req.user._id);
-    findStartup ? (user = findStartup) : (user = findInvestor);
-
-    if (!user) {
-      return res.status(409).json({ message: "No user found", status: false });
-    }
-    const fetchChat = await Chat.find({ user_id: user._id })
-      .select("to_send message createdAt")
-      .sort({
-        createdAt: -1,
-      });
-    const latestChatByToSend = {};
-
-    for (const chat of fetchChat) {
-      if (!(chat.to_send in latestChatByToSend)) {
-        latestChatByToSend[chat.to_send] = chat;
-      }
-    }
-    const latestChats = Object.values(latestChatByToSend);
-    if (latestChats.length < 0) {
-      return res.status(409).json({ message: "No data found", status: false });
-    }
-    res
-      .status(200)
-      .json({ message: "latest chats", status: true, messages: latestChats });
-  } catch (err) {
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
-};
