@@ -1554,8 +1554,6 @@ exports.fetchChat = async (req, res) => {
 //       }
 //     });
 
-
-
 //     for (const id of chatUser) {
 //       console.log("ID ", id);
 //       const startupData = await UserModel.find({
@@ -1610,7 +1608,8 @@ exports.listChatUsers = async (req, res) => {
           .sort((a, b) => b.createdAt - a.createdAt);
 
         // Get the latest message for the user
-        const latestMessage = userMessages.length > 0 ? userMessages[0].message : "";
+        const latestMessage =
+          userMessages.length > 0 ? userMessages[0].message : "";
 
         const startupData = await UserModel.find({
           _id: mongoose.Types.ObjectId(user.to_send),
@@ -1639,7 +1638,15 @@ exports.listChatUsers = async (req, res) => {
       }
     }
 
-    res.status(201).json({ status: true, message: "user data fetched", data: listUsers });
+    if (listUsers.length !== 0) {
+      return res
+        .status(409)
+        .json({ message: "Failed to update user", status: false });
+    }
+
+    res
+      .status(201)
+      .json({ status: true, message: "user data fetched", data: listUsers });
   } catch (err) {
     return res.status(401).json({
       status: false,
@@ -1713,4 +1720,3 @@ exports.countSet = async (req, res) => {
     });
   }
 };
-
