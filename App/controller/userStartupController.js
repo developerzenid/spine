@@ -1638,7 +1638,8 @@ exports.listChatUsers = async (req, res) => {
       }
     }
 
-    if (listUsers.length !== 0) {
+    console.log(listUsers.length);
+    if (listUsers.length == 0) {
       return res
         .status(409)
         .json({ message: "Failed to update user", status: false });
